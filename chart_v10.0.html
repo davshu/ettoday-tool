@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ETtoday 圖卡神器 V8.3 (連結解鎖版)</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif; background-color: #222; padding: 20px; color: #ddd; margin: 0; }
+        
+        .container { display: flex; gap: 30px; max-width: 1600px; margin: 0 auto; height: 95vh; }
+        .editor { flex: 0 0 450px; background: #333; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); overflow-y: auto; display: flex; flex-direction: column; }
+        .preview { flex: 1; background: #111; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 20px; border: 1px solid #444; overflow: hidden; position: relative; }
+        
+        @media (max-width: 900px) {
+            body { padding: 10px; }
+            .container { flex-direction: column; height: auto; gap: 15px; }
+            .editor { flex: none; width: 100%; box-sizing: border-box; padding: 15px; order: 2; }
+            .preview { flex: none; width: 100%; height: auto; min-height: 300px; padding: 10px; order: 1; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.8); }
+            canvas { max-height: 50vh; }
+            h2 { font-size: 18px; }
+            button { padding: 15px; font-size: 16px; }
+        }
+
+        h2 { color: #F58220; margin-top: 0; border-bottom: 3px solid #F58220; padding-bottom: 12px; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        label { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; font-weight: bold; font-size: 14px; color: #bbb; margin-bottom: 5px; }
+        .val-display { color: #F58220; font-family: monospace; font-size: 12px; }
+
+        input, textarea, select { width: 100%; box-sizing: border-box; padding: 12px; background: #444; border: 1px solid #555; color: white; border-radius: 6px; font-size: 15px; margin-top: 2px; font-family: "Noto Sans TC", inherit; transition: 0.2s; }
+        input:focus, textarea:focus { border-color: #F58220; outline: none; background: #505050; }
+        textarea { height: 70px; resize: vertical; }
+        
+        .slider-group { display: flex; align-items: center; gap: 10px; background: #2a2a2a; padding: 8px; border-radius: 6px; margin-top: 5px; }
+        .slider-icon { font-size: 14px; width: 30px; text-align: center; color: #888; }
+        input[type="range"] { flex: 1; cursor: pointer; margin: 0; padding: 0; height: 6px; width: 100%; }
+
+        .file-upload { border: 2px dashed #666; padding: 20px; text-align: center; border-radius: 8px; margin-top: 10px; cursor: pointer; color: #888; transition: 0.2s; background: #2a2a2a; display: block; }
+        .file-upload:hover { border-color: #F58220; color: #F58220; background: #333; }
+        input[type="file"] { display: none; }
+
+        /* URL 輸入區樣式 */
+        .url-group { display: flex; gap: 5px; margin-top: 10px; }
+        .url-input { flex: 1; padding: 10px; font-size: 13px; }
+        .url-btn { width: 80px; background: #555; border: 1px solid #666; color: white; cursor: pointer; border-radius: 6px; }
+        .url-btn:hover { background: #666; }
+
+        .action-row { display: flex; gap: 10px; margin-top: 30px; }
+        .btn-main { flex: 2; background: linear-gradient(135deg, #F58220, #d96a0b); color: white; border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(245, 130, 32, 0.3); transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-main:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-copy { flex: 1; background: #00AA55; color: white; border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 170, 85, 0.3); transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .btn-copy:hover { transform: translateY(-2px); background: #00bb5d; }
+        .action-btn { background: #444; border: 1px solid #666; font-size: 14px; padding: 10px; margin-top: 10px; width: 100%; cursor: pointer; color: #ddd; border-radius: 6px; }
+        .action-btn:hover { background: #555; }
+
+        canvas { box-shadow: 0 20px 50px rgba(0,0,0,0.5); max-height: 90vh; max-width: 100%; width: auto; height: auto; object-fit: contain; background: #000; }
+
+        .input-group { display: none; border-top: 1px dashed #555; padding-top: 15px; margin-top: 15px; }
+        .input-group.active { display: block; animation: fadeIn 0.3s; }
+        .btn-group { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+        .small-btn { flex: 1; padding: 8px; font-size: 13px; border-radius: 4px; cursor: pointer; border: 1px solid #666; background: #444; color: white; transition: 0.2s; min-width: 60px; text-align: center; }
+        .small-btn:hover { background: #555; border-color: #888; }
+        
+        .color-label { display: flex; align-items: center; gap: 10px; margin-top: 5px; cursor: pointer; }
+        .color-btn { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #555; transition: transform 0.2s; }
+        .color-label:hover .color-btn { transform: scale(1.1); border-color: white; }
+        .section-header { color: #F58220; font-size: 14px; margin-top: 20px; margin-bottom: 5px; border-left: 3px solid #F58220; padding-left: 8px; font-weight: bold; }
+        .checkbox-label { display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: normal; margin-top: 10px; justify-content: flex-start; }
+        input[type="checkbox"] { width: 20px; height: 20px; accent-color: #F58220; margin: 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="editor">
+            <h2>📱 ETtoday 神器 V8.3</h2>
+            <div style="font-size:12px; color:#888; margin-bottom:10px;">
+                ✨ 自動權限解鎖：可直接貼連結 <br>
+                ✨ 解決無法下載問題
+            </div>
+            
+            <label>1. 選擇版型 (1080x1350)</label>
+            <select id="layoutSelector" onchange="switchLayout()">
+                <option value="magazine">版型 I：雜誌封面風</option>
+                <option value="glass">版型 J：懸浮玻璃卡片</option>
+            </select>
+
+            <div class="section-header">背景處理</div>
+            <label class="file-upload" id="dropZone">
+                📸 上傳背景大圖 (或拖曳)
+                <input type="file" id="bgUpload" accept="image/*" onchange="handleBg(this)">
+            </label>
+            
+            <div class="url-group">
+                <input type="text" id="imgUrl" class="url-input" placeholder="貼上連結 (例: https://cdn2.ettoday...)">
+                <button class="url-btn" onclick="loadImgFromUrl()">🚀 載入</button>
+            </div>
+            <div style="font-size:11px; color:#666; margin-top:4px;">* 程式將自動透過代理伺服器解鎖下載權限</div>
+
+            <label>圖片濾鏡</label>
+            <select id="bgFilter" onchange="draw()">
+                <option value="none">無濾鏡 (原圖)</option>
+                <option value="grayscale">黑白 (質感)</option>
+                <option value="brightness">增亮 20% (暗圖專用)</option>
+                <option value="darken">壓暗 30% (凸顯文字)</option>
+                <option value="contrast">高對比 (戲劇化)</option>
+            </select>
+
+            <label>縮放 <span id="v_bgZoom" class="val-display">100</span></label>
+            <div class="slider-group">
+                <span class="slider-icon">🔍</span>
+                <input type="range" id="bgZoom" min="100" max="300" step="5" value="100" oninput="updateVal('bgZoom'); draw()">
+            </div>
+            
+            <label>移動 (X, Y) <span class="val-display" id="v_pan">50, 50</span></label>
+            <div class="slider-group">
+                <span class="slider-icon">↔</span>
+                <input type="range" id="bgPanX" min="0" max="100" step="2" value="50" oninput="updateVal('pan'); draw()">
+                <span class="slider-icon">↕</span>
+                <input type="range" id="bgPanY" min="0" max="100" step="2" value="50" oninput="updateVal('pan'); draw()">
+            </div>
+            
+            <div class="section-header">主標題 (強制粗體)</div>
+            <input type="text" id="mainTitle" value="北市房價再創新高！" oninput="draw()">
+            <label>字體大小 <span id="v_titleSize" class="val-display">90</span></label>
+            <div class="slider-group">
+                <span class="slider-icon">A-</span>
+                <input type="range" id="titleSize" min="40" max="140" step="2" value="90" oninput="updateVal('titleSize'); draw()">
+                <span class="slider-icon">A+</span>
+            </div>
+
+            <div class="section-header">標籤 (Tag)</div>
+            <div class="btn-group">
+                <button class="small-btn" onclick="setTagText('快訊')">快訊</button>
+                <button class="small-btn" onclick="setTagText('房產')">房產</button>
+                <button class="small-btn" onclick="setTagText('財經')">財經</button>
+            </div>
+            <input type="text" id="tagText" value="房產" oninput="draw()">
+            
+            <label class="checkbox-label">
+                <input type="checkbox" id="showDate" checked onchange="draw()">
+                顯示今日日期 (右下角)
+            </label>
+
+            <label style="margin-top:10px">標籤底色</label>
+            <div class="btn-group" style="align-items: center;">
+                <div class="color-label" onclick="setTagColor('#F58220')"><div class="color-btn" style="background: #F58220;"></div><span class="color-name">官方</span></div>
+                <div class="color-label" onclick="setTagColor('#0077CC')"><div class="color-btn" style="background: #0077CC;"></div><span class="color-name">台北</span></div>
+                <div class="color-label" onclick="setTagColor('#00AA55')"><div class="color-btn" style="background: #00AA55;"></div><span class="color-name">台中</span></div>
+                <div class="color-label" onclick="setTagColor('#E60012')"><div class="color-btn" style="background: #E60012;"></div><span class="color-name">高雄</span></div>
+            </div>
+
+            <div id="group-magazine" class="input-group active">
+                <div class="section-header">內容與引言</div>
+                <textarea id="m_Sub" oninput="draw()">信義區單坪破300萬，專家分析：這波漲勢恐延續至年底。</textarea>
+                
+                <label>內文字體大小 <span id="v_m_SubSize" class="val-display">46</span></label>
+                <div class="slider-group">
+                    <span class="slider-icon">A-</span>
+                    <input type="range" id="m_SubSize" min="24" max="80" step="2" value="46" oninput="updateVal('m_SubSize'); draw()">
+                    <span class="slider-icon">A+</span>
+                </div>
+
+                <label style="margin-top:10px">遮罩強度 <span id="v_m_Overlay" class="val-display">0.8</span></label>
+                <div class="slider-group">
+                    <span class="slider-icon">☀︎</span>
+                    <input type="range" id="m_Overlay" min="0" max="1" step="0.1" value="0.8" oninput="updateVal('m_Overlay'); draw()">
+                    <span class="slider-icon">☾</span>
+                </div>
+            </div>
+
+            <div id="group-glass" class="input-group">
+                <div class="section-header">內容設定</div>
+                <label>卡片標題</label>
+                <input type="text" id="g_Title" value="購屋族該如何應對？" oninput="draw()">
+                
+                <label>重點內容 (強制粗體)</label>
+                <textarea id="g_Desc" style="height:120px;" oninput="draw()">1. 鎖定蛋白區潛力股
+2. 善用新青安貸款優惠
+3. 避免過度追高</textarea>
+                
+                <label>內文字體大小 <span id="v_g_SubSize" class="val-display">40</span></label>
+                <div class="slider-group">
+                    <span class="slider-icon">A-</span>
+                    <input type="range" id="g_SubSize" min="24" max="60" step="2" value="40" oninput="updateVal('g_SubSize'); draw()">
+                    <span class="slider-icon">A+</span>
+                </div>
+            </div>
+
+            <div class="section-header">其他</div>
+            <input type="text" id="sourceText" value="資料來源：ETtoday 採訪團隊" oninput="draw()">
+            
+            <div class="action-row">
+                <button class="btn-main" onclick="downloadImage()">📥 下載圖卡</button>
+                <button class="btn-copy" onclick="copyImage()" title="複製到剪貼簿">📋 複製</button>
+            </div>
+            
+            <button class="action-btn" onclick="resetConfig()">↺ 重置所有設定</button>
+        </div>
+
+        <div class="preview">
+            <canvas id="myCanvas" width="1080" height="1350"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const C_WHITE = "#FFFFFF";
+        const C_BLACK = "#000000";
+        const FONT_FAMILY = "'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', sans-serif";
+        
+        let bgImg = null;
+        let currentTagColor = "#F58220"; 
+
+        document.fonts.ready.then(function() { draw(); });
+
+        window.onload = function() {
+            loadConfig(); 
+            switchLayout(false); 
+            updateAllVals();
+            draw(); 
+        };
+
+        // V8.3 重點更新：使用 wsrv.nl 代理服務來解鎖圖片 CORS 限制
+        function loadImgFromUrl() {
+            let url = document.getElementById('imgUrl').value.trim();
+            if(!url) return;
+
+            // 如果是 ettoday 的圖片，或其他外部圖片，透過代理伺服器轉發
+            // wsrv.nl 是一個免費、快速的圖片處理/代理服務
+            const proxyUrl = 'https://wsrv.nl/?url=' + encodeURIComponent(url) + '&output=png';
+
+            const img = new Image();
+            img.crossOrigin = "Anonymous"; // 告訴瀏覽器這張圖是跨域安全的
+            
+            img.onload = function() {
+                bgImg = img;
+                draw();
+                document.getElementById('imgUrl').value = '';
+            };
+            
+            img.onerror = function() {
+                alert('❌ 圖片載入失敗！\n請確認連結是否正確，或是該網站有嚴格防盜鏈設定。\n\n建議：直接下載圖片後，使用「上傳」功能。');
+            };
+
+            img.src = proxyUrl;
+        }
+
+        function updateVal(id) {
+            if (id === 'pan') {
+                const x = document.getElementById('bgPanX').value;
+                const y = document.getElementById('bgPanY').value;
+                document.getElementById('v_pan').innerText = `${x}, ${y}`;
+            } else {
+                const val = document.getElementById(id).value;
+                if(document.getElementById('v_' + id)) {
+                    document.getElementById('v_' + id).innerText = val;
+                }
+            }
+        }
+        
+        function updateAllVals() {
+            ['bgZoom', 'titleSize', 'm_SubSize', 'm_Overlay', 'g_SubSize'].forEach(id => updateVal(id));
+            updateVal('pan');
+        }
+
+        function saveConfig() {
+            const config = {
+                layout: document.getElementById('layoutSelector').value,
+                mainTitle: document.getElementById('mainTitle').value,
+                tagText: document.getElementById('tagText').value,
+                sourceText: document.getElementById('sourceText').value,
+                m_Sub: document.getElementById('m_Sub').value,
+                g_Title: document.getElementById('g_Title').value,
+                g_Desc: document.getElementById('g_Desc').value,
+                tagColor: currentTagColor,
+                titleSize: document.getElementById('titleSize').value,
+                bgZoom: document.getElementById('bgZoom').value,
+                bgPanX: document.getElementById('bgPanX').value,
+                bgPanY: document.getElementById('bgPanY').value,
+                showDate: document.getElementById('showDate').checked
+            };
+            localStorage.setItem('et_chart_v8_3_config', JSON.stringify(config));
+        }
+
+        function loadConfig() {
+            const saved = localStorage.getItem('et_chart_v8_3_config');
+            if (saved) {
+                const config = JSON.parse(saved);
+                document.getElementById('layoutSelector').value = config.layout || 'magazine';
+                document.getElementById('mainTitle').value = config.mainTitle || '';
+                document.getElementById('tagText').value = config.tagText || '';
+                document.getElementById('sourceText').value = config.sourceText || '';
+                document.getElementById('m_Sub').value = config.m_Sub || '';
+                document.getElementById('g_Title').value = config.g_Title || '';
+                document.getElementById('g_Desc').value = config.g_Desc || '';
+                document.getElementById('titleSize').value = config.titleSize || 90;
+                document.getElementById('bgZoom').value = config.bgZoom || 100;
+                document.getElementById('bgPanX').value = config.bgPanX || 50;
+                document.getElementById('bgPanY').value = config.bgPanY || 50;
+                document.getElementById('showDate').checked = config.showDate;
+                if(config.tagColor) currentTagColor = config.tagColor;
+            }
+        }
+
+        function resetConfig() {
+            if(confirm('確定要重置所有文字和設定嗎？')) {
+                localStorage.removeItem('et_chart_v8_3_config');
+                location.reload();
+            }
+        }
+
+        document.querySelectorAll('input, textarea, select').forEach(el => {
+            el.addEventListener('input', () => {
+                draw();
+                saveConfig(); 
+            });
+        });
+
+        function setTagText(text) {
+            document.getElementById('tagText').value = text;
+            draw();
+            saveConfig();
+        }
+        
+        function setTagColor(color) {
+            currentTagColor = color;
+            draw();
+            saveConfig();
+        }
+
+        const dropZone = document.getElementById('dropZone');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+        dropZone.addEventListener('drop', handleDrop, false);
+        function handleDrop(e) {
+            let dt = e.dataTransfer;
+            let files = dt.files;
+            handleBg({ files: files });
+        }
+
+        function handleBg(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var img = new Image();
+                    img.onload = function() { bgImg = img; draw(); }
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function switchLayout(resetValues = true) {
+            const layout = document.getElementById('layoutSelector').value;
+            document.querySelectorAll('.input-group').forEach(el => el.classList.remove('active'));
+            if(document.getElementById('group-' + layout)) {
+                document.getElementById('group-' + layout).classList.add('active');
+            }
+            if (resetValues) {
+                if(layout === 'magazine') {
+                    document.getElementById('titleSize').value = 90;
+                } else {
+                    document.getElementById('titleSize').value = 64;
+                }
+                updateAllVals();
+            }
+            draw();
+        }
+
+        function draw() {
+            ctx.fillStyle = "#222";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const layout = document.getElementById('layoutSelector').value;
+            
+            drawFullBg();
+
+            if (layout === 'magazine') drawMagazine();
+            else if (layout === 'glass') drawGlass();
+
+            drawLogo();
+            drawSource();
+            drawDate(); 
+        }
+
+        function drawFullBg() {
+            const filter = document.getElementById('bgFilter').value;
+            ctx.filter = 'none';
+            if (filter === 'grayscale') ctx.filter = 'grayscale(100%)';
+            if (filter === 'brightness') ctx.filter = 'brightness(120%)';
+            if (filter === 'darken') ctx.filter = 'brightness(70%)';
+            if (filter === 'contrast') ctx.filter = 'contrast(130%)';
+
+            if (bgImg) {
+                const zoom = document.getElementById('bgZoom').value / 100;
+                const panX = document.getElementById('bgPanX').value / 100;
+                const panY = document.getElementById('bgPanY').value / 100;
+                drawImageProp(ctx, bgImg, 0, 0, canvas.width, canvas.height, panX, panY, zoom);
+            } else {
+                let grd = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                grd.addColorStop(0, "#333");
+                grd.addColorStop(1, "#111");
+                ctx.fillStyle = grd;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.filter = 'none';
+                ctx.fillStyle = "#555";
+                ctx.font = "bold 60px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("請上傳背景圖片", canvas.width/2, canvas.height/2);
+            }
+            ctx.filter = 'none';
+        }
+
+        function drawMagazine() {
+            const strength = document.getElementById('m_Overlay').value;
+            let grd = ctx.createLinearGradient(0, 500, 0, 1350);
+            grd.addColorStop(0, "transparent");
+            grd.addColorStop(0.3, `rgba(0,0,0,${strength * 0.5})`);
+            grd.addColorStop(1, `rgba(0,0,0,${strength})`);
+            ctx.fillStyle = grd;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const titleSize = parseInt(document.getElementById('titleSize').value);
+            const contentSize = parseInt(document.getElementById('m_SubSize').value);
+
+            // 1. Tag (y=850)
+            const tag = document.getElementById('tagText').value;
+            drawTag(80, 850, tag);
+
+            // 2. Title
+            const titleY = 1020; 
+            const title = document.getElementById('mainTitle').value;
+            ctx.fillStyle = C_WHITE;
+            ctx.font = `900 ${titleSize}px ${FONT_FAMILY}`;
+            ctx.textAlign = "left";
+            ctx.shadowColor = "rgba(0,0,0,0.8)";
+            ctx.shadowBlur = 20;
+            wrapText(ctx, title, 80, titleY, 920, titleSize * 1.25); 
+            ctx.shadowBlur = 0;
+
+            // 3. Sub
+            const sub = document.getElementById('m_Sub').value;
+            ctx.fillStyle = "#ddd";
+            ctx.font = `bold ${contentSize}px ${FONT_FAMILY}`;
+            wrapText(ctx, sub, 80, 1220, 920, contentSize * 1.4);
+        }
+
+        function drawGlass() {
+            ctx.fillStyle = "rgba(0,0,0,0.2)";
+            ctx.fillRect(0,0, canvas.width, canvas.height);
+
+            const titleSize = parseInt(document.getElementById('titleSize').value);
+            const contentSize = parseInt(document.getElementById('g_SubSize').value);
+
+            const x = 80, y = 750, w = 920, h = 500;
+            
+            ctx.save();
+            roundRect(ctx, x, y, w, h, 40);
+            ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+            ctx.fill();
+            ctx.shadowColor = "rgba(0,0,0,0.3)";
+            ctx.shadowBlur = 40;
+            ctx.shadowOffsetY = 20;
+            ctx.restore();
+
+            // Tag 浮在卡片左上
+            const tag = document.getElementById('tagText').value;
+            drawTag(x + 60, y - 40, tag);
+
+            const title = document.getElementById('mainTitle').value;
+            ctx.fillStyle = C_BLACK;
+            ctx.font = `900 ${titleSize}px ${FONT_FAMILY}`;
+            ctx.textAlign = "left";
+            wrapText(ctx, title, x + 60, y + 90, w - 120, titleSize * 1.3); 
+            
+            const gTitle = document.getElementById('g_Title').value;
+            ctx.fillStyle = "#F58220";
+            const subHeaderSize = contentSize + 6; 
+            ctx.font = `bold ${subHeaderSize}px ${FONT_FAMILY}`;
+            ctx.fillText(gTitle, x + 60, y + 240); 
+
+            const desc = document.getElementById('g_Desc').value;
+            ctx.fillStyle = "#444";
+            ctx.font = `bold ${contentSize}px ${FONT_FAMILY}`;
+            wrapText(ctx, desc, x + 60, y + 310, w - 120, contentSize * 1.5);
+        }
+
+        function drawTag(x, y, text) {
+            const fontSize = 32;
+            ctx.font = `bold ${fontSize}px ${FONT_FAMILY}`;
+            const metrics = ctx.measureText(text);
+            const paddingX = 40; 
+            const paddingY = 24; 
+            const w = metrics.width + paddingX;
+            const h = fontSize + paddingY;
+
+            ctx.fillStyle = currentTagColor;
+            roundRect(ctx, x, y, w, h, 8);
+            ctx.fill();
+            
+            ctx.fillStyle = "white";
+            ctx.textAlign = "center";
+            ctx.fillText(text, x + w/2, y + h/2 + fontSize/3);
+        }
+
+        function drawLogo() {
+            const w = 180; 
+            const h = 64;
+            const x = canvas.width - w - 50;
+            const y = 80;
+            
+            ctx.fillStyle = "rgba(0,0,0,0.6)";
+            roundRect(ctx, x, y, w, h, 32);
+            ctx.fill();
+            
+            ctx.fillStyle = "white";
+            ctx.font = "bold 34px Arial, 'Microsoft JhengHei', sans-serif"; 
+            ctx.textAlign = "center";
+            ctx.fillText("ETtoday", x + w/2, y + 43);
+        }
+
+        function drawSource() {
+            const source = document.getElementById('sourceText').value;
+            if (!source) return;
+
+            ctx.textAlign = "center";
+            ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+            ctx.font = `bold 26px ${FONT_FAMILY}`;
+            ctx.shadowColor = "rgba(0,0,0,0.9)";
+            ctx.shadowBlur = 4;
+            
+            ctx.fillText(source, 540, 1310); 
+            ctx.shadowBlur = 0;
+        }
+
+        function drawDate() {
+            if (!document.getElementById('showDate').checked) return;
+
+            const today = new Date();
+            const dateStr = today.getFullYear() + '.' + (today.getMonth()+1).toString().padStart(2, '0') + '.' + today.getDate().toString().padStart(2, '0');
+            
+            ctx.textAlign = "right";
+            ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+            ctx.font = `bold 26px ${FONT_FAMILY}`;
+            ctx.shadowColor = "rgba(0,0,0,0.9)";
+            ctx.shadowBlur = 4;
+            
+            ctx.fillText(dateStr, canvas.width - 50, 1310);
+            ctx.shadowBlur = 0;
+        }
+
+        function drawImageProp(ctx, img, x, y, w, h, offsetX, offsetY, zoom) {
+            if (arguments.length === 2) { x = y = 0; w = ctx.canvas.width; h = ctx.canvas.height; }
+            offsetX = typeof offsetX === "number" ? offsetX : 0.5;
+            offsetY = typeof offsetY === "number" ? offsetY : 0.5;
+            zoom = typeof zoom === "number" ? zoom : 1.0; 
+
+            if (offsetX < 0) offsetX = 0; if (offsetY < 0) offsetY = 0; if (offsetX > 1) offsetX = 1; if (offsetY > 1) offsetY = 1;
+            var iw = img.width, ih = img.height, r = Math.min(w / iw, h / ih), nw = iw * r, nh = ih * r, cx, cy, cw, ch, ar = 1;
+            if (nw < w) ar = w / nw; if (Math.abs(ar - 1) < 1e-14 && nh < h) ar = h / nh; nw *= ar; nh *= ar;
+            cw = iw / (nw / w); ch = ih / (nh / h); 
+
+            cw /= zoom;
+            ch /= zoom;
+
+            cx = (iw - cw) * offsetX;
+            cy = (ih - ch) * offsetY;
+
+            if (cx < 0) cx = 0; if (cy < 0) cy = 0; if (cx + cw > iw) cx = iw - cw; if (cy + ch > ih) cy = ih - ch;
+            ctx.drawImage(img, cx, cy, cw, ch,  x, y, w, h);
+        }
+
+        function wrapText(context, text, x, y, maxWidth, lineHeight) {
+            var words = text.split('');
+            var line = '';
+            for(var n = 0; n < words.length; n++) {
+                var testLine = line + words[n];
+                var metrics = context.measureText(testLine);
+                if (metrics.width > maxWidth && n > 0) {
+                    context.fillText(line, x, y);
+                    line = words[n];
+                    y += lineHeight;
+                } else {
+                    line = testLine;
+                }
+            }
+            context.fillText(line, x, y);
+        }
+
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
+        
+        function getSafeFilename() {
+            const now = new Date();
+            const dateStr = now.getFullYear() +
+                            (now.getMonth()+1).toString().padStart(2, '0') +
+                            now.getDate().toString().padStart(2, '0') + '_' +
+                            now.getHours().toString().padStart(2, '0') +
+                            now.getMinutes().toString().padStart(2, '0');
+            let title = document.getElementById('mainTitle').value.trim();
+            title = title.replace(/[\\/:*?"<>|]/g, '');
+            if(!title) title = 'ettoday_chart';
+            return `${dateStr}_${title}.png`;
+        }
+
+        function downloadImage() {
+            try {
+                var link = document.createElement('a');
+                link.download = getSafeFilename();
+                link.href = canvas.toDataURL();
+                link.click();
+            } catch(e) {
+                console.error(e);
+                alert('❌ 下載失敗！\n原因：瀏覽器判定這張圖片不安全 (CORS)。\n請改用「下載圖片後上傳」的方式，這是最穩定的。');
+            }
+        }
+        
+        async function copyImage() {
+            try {
+                const blob = await new Promise(resolve => canvas.toBlob(resolve));
+                if (!blob) throw new Error('CORS tainted');
+                await navigator.clipboard.write([
+                    new ClipboardItem({ 'image/png': blob })
+                ]);
+                alert('✅ 圖片已複製到剪貼簿！');
+            } catch (err) {
+                console.error(err);
+                alert('❌ 複製失敗！\n1. 請確認這不是被保護的網路圖片 (請改用下載後上傳)\n2. 或者改用「下載圖卡」');
+            }
+        }
+    </script>
+</body>
+</html>
