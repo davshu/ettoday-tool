@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title> 圖卡神器 V10 </title>
+    <title> 圖卡神器 V10.1 </title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,6 +48,7 @@
         .url-input { flex: 1; padding: 10px; font-size: 13px; }
         .url-btn { width: 80px; background: #555; border: 1px solid #666; color: white; cursor: pointer; border-radius: 6px; }
         .url-btn:hover { background: #666; }
+        .url-btn:disabled { background: #333; color: #888; cursor: not-allowed; }
 
         .action-row { display: flex; gap: 10px; margin-top: 30px; }
         .btn-main { flex: 2; background: linear-gradient(135deg, #F58220, #d96a0b); color: white; border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(245, 130, 32, 0.3); transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -76,9 +77,9 @@
 <body>
     <div class="container">
         <div class="editor">
-            <h2>📱 ETtoday 神器 V10</h2>
+            <h2>📱 ETtoday 神器 V10.1</h2>
             <div style="font-size:12px; color:#888; margin-bottom:10px;">
-                ✨ 自動權限解鎖：可直接貼連結 <br>
+                ✨ 自動權限解鎖：已升級多重代理通道 <br>
             </div>
             
             <label>1. 選擇版型 (1080x1350)</label>
@@ -97,7 +98,7 @@
                 <input type="text" id="imgUrl" class="url-input" placeholder="貼上連結 (例: https://cdn2.ettoday...)">
                 <button class="url-btn" onclick="loadImgFromUrl()">🚀 載入</button>
             </div>
-            <div style="font-size:11px; color:#666; margin-top:4px;">* 程式將自動透過代理伺服器解鎖下載權限</div>
+            <div style="font-size:11px; color:#666; margin-top:4px;">* 程式將自動切換 3 組代理伺服器來嘗試下載</div>
 
             <label>圖片濾鏡</label>
             <select id="bgFilter" onchange="draw()">
@@ -177,9 +178,7 @@
                 <input type="text" id="g_Title" value="購屋族該如何應對？" oninput="draw()">
                 
                 <label>重點內容 (強制粗體)</label>
-                <textarea id="g_Desc" style="height:120px;" oninput="draw()">1. 鎖定蛋白區潛力股
-2. 善用新青安貸款優惠
-3. 避免過度追高</textarea>
+                <textarea id="g_Desc" style="height:120px;" oninput="draw()">1. 鎖定蛋白區潛力股2. 善用新青安貸款優惠3. 避免過度追高</textarea>
                 
                 <label>內文字體大小 <span id="v_g_SubSize" class="val-display">40</span></label>
                 <div class="slider-group">
@@ -224,29 +223,68 @@
             draw(); 
         };
 
-        // V8.3 重點更新：使用 wsrv.nl 代理服務來解鎖圖片 CORS 限制
+        // V10.1 更新：多重代理救援機制
         function loadImgFromUrl() {
             let url = document.getElementById('imgUrl').value.trim();
             if(!url) return;
 
-            // 如果是 ettoday 的圖片，或其他外部圖片，透過代理伺服器轉發
-            // wsrv.nl 是一個免費、快速的圖片處理/代理服務
-            const proxyUrl = 'https://wsrv.nl/?url=' + encodeURIComponent(url) + '&output=png';
+            // 定義代理服務列表 (優先順序)
+            // 1. weserv (完整網域，比較穩)
+            // 2. wsrv.nl (原本的短網址)
+            // 3. corsproxy.io (備用方案，直接穿透)
+            const proxies = [
+                (u) => `https://images.weserv.nl/?url=${encodeURIComponent(u)}&output=png&t=${Date.now()}`,
+                (u) => `https://wsrv.nl/?url=${encodeURIComponent(u)}&output=png&t=${Date.now()}`,
+                (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`
+            ];
 
-            const img = new Image();
-            img.crossOrigin = "Anonymous"; // 告訴瀏覽器這張圖是跨域安全的
+            let proxyIndex = 0;
+            const btn = document.querySelector('.url-btn');
+            const originalBtnText = btn.innerText;
             
-            img.onload = function() {
-                bgImg = img;
-                draw();
-                document.getElementById('imgUrl').value = '';
-            };
-            
-            img.onerror = function() {
-                alert('❌ 圖片載入失敗！\n請確認連結是否正確，或是該網站有嚴格防盜鏈設定。\n\n建議：直接下載圖片後，使用「上傳」功能。');
-            };
+            // 顯示載入中狀態
+            btn.innerText = "⏳ 嘗試中...";
+            btn.disabled = true;
 
-            img.src = proxyUrl;
+            function tryLoad() {
+                // 如果所有通道都試過了
+                if (proxyIndex >= proxies.length) {
+                    alert('❌ 所有代理通道都失效！\n\n原因可能是：\n1. 圖片來源網站擋住了代理伺服器。\n2. 連結本身無效。\n\n💡 建議：請直接「下載圖片」到電腦，再使用「上傳背景」功能。');
+                    btn.innerText = originalBtnText;
+                    btn.disabled = false;
+                    return;
+                }
+
+                const img = new Image();
+                img.crossOrigin = "Anonymous"; // 關鍵：允許跨域
+
+                // 取得當前要嘗試的代理網址
+                const currentProxyUrl = proxies[proxyIndex](url);
+                console.log(`正在嘗試通道 ${proxyIndex + 1}:`, currentProxyUrl);
+
+                img.onload = function() {
+                    bgImg = img;
+                    draw();
+                    document.getElementById('imgUrl').value = ''; // 清空輸入框
+                    
+                    // 恢復按鈕狀態
+                    btn.innerText = "✅ 成功";
+                    setTimeout(() => { 
+                        btn.innerText = originalBtnText; 
+                        btn.disabled = false;
+                    }, 1000);
+                };
+
+                img.onerror = function() {
+                    console.warn(`通道 ${proxyIndex + 1} 失敗，切換下一個...`);
+                    proxyIndex++;
+                    tryLoad(); // 遞迴呼叫：嘗試下一個
+                };
+
+                img.src = currentProxyUrl;
+            }
+
+            tryLoad(); // 開始執行
         }
 
         function updateVal(id) {
@@ -646,6 +684,4 @@
         }
     </script>
 </body>
-
 </html>
-
