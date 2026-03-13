@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title> 圖卡神器 V12 </title>
+    <title> 圖卡神器 V13 </title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -77,7 +77,7 @@
 <body>
     <div class="container">
         <div class="editor">
-            <h2>📱 ETtoday 神器 V10.1</h2>
+            <h2>📱 ETtoday 神器 V13</h2>
             <div style="font-size:12px; color:#888; margin-bottom:10px;">
                 ✨ 自動權限解鎖：已升級多重代理通道 <br>
             </div>
@@ -137,6 +137,7 @@
                 <button class="small-btn" onclick="setTagText('快訊')">快訊</button>
                 <button class="small-btn" onclick="setTagText('房產')">房產</button>
                 <button class="small-btn" onclick="setTagText('財經')">財經</button>
+                <button class="small-btn" onclick="setTagText('國際')">國際</button>
             </div>
             <input type="text" id="tagText" value="房產" oninput="draw()">
             
@@ -157,6 +158,8 @@
                 <div class="color-label" onclick="setTagColor('#D4AC0D')"><div class="color-btn" style="background: #D4AC0D;"></div><span class="color-name">體育</span></div>
                 <div class="color-label" onclick="setTagColor('#34495E')"><div class="color-btn" style="background: #34495E;"></div><span class="color-name">社會</span></div>
                 <div class="color-label" onclick="setTagColor('#7F8C8D')"><div class="color-btn" style="background: #7F8C8D;"></div><span class="color-name">生活</span></div>
+                <div class="color-label" onclick="setTagColor('#000000')"><div class="color-btn" style="background: #000000;"></div><span class="color-name">純黑</span></div>
+                <div class="color-label" onclick="setTagColor('#273C75')"><div class="color-btn" style="background: #273C75;"></div><span class="color-name">財經</span></div>
             </div>
 
             <div id="group-magazine" class="input-group active">
@@ -194,7 +197,13 @@
                 </div>
             </div>
 
-            <div class="section-header">其他</div>
+            <div class="section-header">其他 (資料來源)</div>
+            <div class="btn-group" style="margin-bottom: 8px;">
+                <button class="small-btn" onclick="setSourceText('資料來源：ETtoday 採訪團隊')">預設</button>
+                <button class="small-btn" onclick="setSourceText('資料來源：路透社')">路透社</button>
+                <button class="small-btn" onclick="setSourceText('資料來源：達志影像')">達志影像</button>
+                <button class="small-btn" onclick="setSourceText('資料來源：美聯社')">美聯社</button>
+            </div>
             <input type="text" id="sourceText" value="資料來源：ETtoday 採訪團隊" oninput="draw()">
             
             <div class="action-row">
@@ -229,15 +238,10 @@
             draw(); 
         };
 
-        // V10.1 更新：多重代理救援機制
         function loadImgFromUrl() {
             let url = document.getElementById('imgUrl').value.trim();
             if(!url) return;
 
-            // 定義代理服務列表 (優先順序)
-            // 1. weserv (完整網域，比較穩)
-            // 2. wsrv.nl (原本的短網址)
-            // 3. corsproxy.io (備用方案，直接穿透)
             const proxies = [
                 (u) => `https://images.weserv.nl/?url=${encodeURIComponent(u)}&output=png&t=${Date.now()}`,
                 (u) => `https://wsrv.nl/?url=${encodeURIComponent(u)}&output=png&t=${Date.now()}`,
@@ -248,12 +252,10 @@
             const btn = document.querySelector('.url-btn');
             const originalBtnText = btn.innerText;
             
-            // 顯示載入中狀態
             btn.innerText = "⏳ 嘗試中...";
             btn.disabled = true;
 
             function tryLoad() {
-                // 如果所有通道都試過了
                 if (proxyIndex >= proxies.length) {
                     alert('❌ 所有代理通道都失效！\n\n原因可能是：\n1. 圖片來源網站擋住了代理伺服器。\n2. 連結本身無效。\n\n💡 建議：請直接「下載圖片」到電腦，再使用「上傳背景」功能。');
                     btn.innerText = originalBtnText;
@@ -262,18 +264,16 @@
                 }
 
                 const img = new Image();
-                img.crossOrigin = "Anonymous"; // 關鍵：允許跨域
+                img.crossOrigin = "Anonymous"; 
 
-                // 取得當前要嘗試的代理網址
                 const currentProxyUrl = proxies[proxyIndex](url);
                 console.log(`正在嘗試通道 ${proxyIndex + 1}:`, currentProxyUrl);
 
                 img.onload = function() {
                     bgImg = img;
                     draw();
-                    document.getElementById('imgUrl').value = ''; // 清空輸入框
+                    document.getElementById('imgUrl').value = ''; 
                     
-                    // 恢復按鈕狀態
                     btn.innerText = "✅ 成功";
                     setTimeout(() => { 
                         btn.innerText = originalBtnText; 
@@ -284,13 +284,13 @@
                 img.onerror = function() {
                     console.warn(`通道 ${proxyIndex + 1} 失敗，切換下一個...`);
                     proxyIndex++;
-                    tryLoad(); // 遞迴呼叫：嘗試下一個
+                    tryLoad(); 
                 };
 
                 img.src = currentProxyUrl;
             }
 
-            tryLoad(); // 開始執行
+            tryLoad(); 
         }
 
         function updateVal(id) {
@@ -372,6 +372,12 @@
         
         function setTagColor(color) {
             currentTagColor = color;
+            draw();
+            saveConfig();
+        }
+
+        function setSourceText(text) {
+            document.getElementById('sourceText').value = text;
             draw();
             saveConfig();
         }
