@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title> 圖卡神器 V13 </title>
+    <title> 圖卡神器 V14 </title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -69,6 +69,11 @@
         .color-label { display: flex; align-items: center; gap: 10px; margin-top: 5px; cursor: pointer; }
         .color-btn { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #555; transition: transform 0.2s; }
         .color-label:hover .color-btn { transform: scale(1.1); border-color: white; }
+        .text-color-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; min-height: 38px; margin: 8px 0 14px; }
+        .text-color-swatch { flex: 0 0 34px; width: 34px; height: 34px; padding: 0; border-radius: 50%; border: 2px solid #777; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2); }
+        .text-color-swatch:hover, .text-color-swatch:focus-visible { transform: scale(1.08); border-color: white; outline: none; }
+        .text-color-clear { flex: 0 0 38px; width: 38px; height: 34px; padding: 0; border: 1px solid #777; border-radius: 6px; background: #444; color: white; font-size: 19px; cursor: pointer; }
+        .text-color-clear:hover, .text-color-clear:focus-visible { background: #555; border-color: white; outline: none; }
         .section-header { color: #F58220; font-size: 14px; margin-top: 20px; margin-bottom: 5px; border-left: 3px solid #F58220; padding-left: 8px; font-weight: bold; }
         .checkbox-label { display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: normal; margin-top: 10px; justify-content: flex-start; }
         input[type="checkbox"] { width: 20px; height: 20px; accent-color: #F58220; margin: 0; }
@@ -77,7 +82,7 @@
 <body>
     <div class="container">
         <div class="editor">
-            <h2>📱 ETtoday 神器 V13</h2>
+            <h2>📱 ETtoday 神器 V14</h2>
             <div style="font-size:12px; color:#888; margin-bottom:10px;">
                 ✨ 自動權限解鎖：已升級多重代理通道 <br>
             </div>
@@ -138,6 +143,7 @@
                 <button class="small-btn" onclick="setTagText('房產')">房產</button>
                 <button class="small-btn" onclick="setTagText('財經')">財經</button>
                 <button class="small-btn" onclick="setTagText('國際')">國際</button>
+                <button class="small-btn" onclick="setTagText('政治')">政治</button>
             </div>
             <input type="text" id="tagText" value="房產" oninput="draw()">
             
@@ -165,7 +171,20 @@
             <div id="group-magazine" class="input-group active">
                 <div class="section-header">內容與引言</div>
                 <textarea id="m_Sub" oninput="draw()">信義區單坪破300萬，專家分析：這波漲勢恐延續至年底。</textarea>
-                
+
+                <label>局部文字顏色</label>
+                <div class="text-color-tools" aria-label="局部文字顏色">
+                    <button type="button" class="text-color-swatch" style="background:#FC8416" aria-label="ET 橘" title="ET 橘" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#FC8416')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#E72D48" aria-label="快訊紅" title="快訊紅" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#E72D48')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#FAC03D" aria-label="重點黃" title="重點黃" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#FAC03D')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#91CFD5" aria-label="資訊藍" title="資訊藍" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#91CFD5')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#66D3C0" aria-label="生活青" title="生活青" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#66D3C0')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#91C53A" aria-label="健康綠" title="健康綠" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#91C53A')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#E6397C" aria-label="娛樂粉" title="娛樂粉" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#E6397C')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#B56CFF" aria-label="焦點紫" title="焦點紫" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#B56CFF')"></button>
+                    <button type="button" class="text-color-clear" aria-label="清除顏色" title="恢復選取文字的預設顏色" onmousedown="event.preventDefault()" onclick="applySelectedTextColor(null)">×</button>
+                </div>
+
                 <label>內文字體大小 <span id="v_m_SubSize" class="val-display">46</span></label>
                 <div class="slider-group">
                     <span class="slider-icon">A-</span>
@@ -227,7 +246,14 @@
         const FONT_FAMILY = "'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', sans-serif";
         
         let bgImg = null;
-        let currentTagColor = "#F58220"; 
+        let currentTagColor = "#F58220";
+        const colorableTextIds = ['mainTitle', 'm_Sub'];
+        let textColorMaps = { mainTitle: [], m_Sub: [] };
+        let trackedTextValues = {
+            mainTitle: document.getElementById('mainTitle').value,
+            m_Sub: document.getElementById('m_Sub').value
+        };
+        let activeTextSelection = null;
 
         document.fonts.ready.then(function() { draw(); });
 
@@ -325,7 +351,8 @@
                 bgZoom: document.getElementById('bgZoom').value,
                 bgPanX: document.getElementById('bgPanX').value,
                 bgPanY: document.getElementById('bgPanY').value,
-                showDate: document.getElementById('showDate').checked
+                showDate: document.getElementById('showDate').checked,
+                textColorMaps: textColorMaps
             };
             localStorage.setItem('et_chart_v8_3_config', JSON.stringify(config));
         }
@@ -333,21 +360,38 @@
         function loadConfig() {
             const saved = localStorage.getItem('et_chart_v8_3_config');
             if (saved) {
-                const config = JSON.parse(saved);
-                document.getElementById('layoutSelector').value = config.layout || 'magazine';
-                document.getElementById('mainTitle').value = config.mainTitle || '';
-                document.getElementById('tagText').value = config.tagText || '';
-                document.getElementById('sourceText').value = config.sourceText || '';
-                document.getElementById('m_Sub').value = config.m_Sub || '';
-                document.getElementById('g_Title').value = config.g_Title || '';
-                document.getElementById('g_Desc').value = config.g_Desc || '';
-                document.getElementById('titleSize').value = config.titleSize || 90;
-                document.getElementById('bgZoom').value = config.bgZoom || 100;
-                document.getElementById('bgPanX').value = config.bgPanX || 50;
-                document.getElementById('bgPanY').value = config.bgPanY || 50;
-                document.getElementById('showDate').checked = config.showDate;
-                if(config.tagColor) currentTagColor = config.tagColor;
+                try {
+                    const config = JSON.parse(saved);
+                    document.getElementById('layoutSelector').value = config.layout || 'magazine';
+                    document.getElementById('mainTitle').value = config.mainTitle || '';
+                    document.getElementById('tagText').value = config.tagText || '';
+                    document.getElementById('sourceText').value = config.sourceText || '';
+                    document.getElementById('m_Sub').value = config.m_Sub || '';
+                    document.getElementById('g_Title').value = config.g_Title || '';
+                    document.getElementById('g_Desc').value = config.g_Desc || '';
+                    document.getElementById('titleSize').value = config.titleSize || 90;
+                    document.getElementById('bgZoom').value = config.bgZoom || 100;
+                    document.getElementById('bgPanX').value = config.bgPanX || 50;
+                    document.getElementById('bgPanY').value = config.bgPanY || 50;
+                    if (typeof config.showDate === 'boolean') document.getElementById('showDate').checked = config.showDate;
+                    if(config.tagColor) currentTagColor = config.tagColor;
+                    if (config.textColorMaps) {
+                        colorableTextIds.forEach(id => {
+                            if (Array.isArray(config.textColorMaps[id])) {
+                                textColorMaps[id] = config.textColorMaps[id].slice(0, document.getElementById(id).value.length);
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.warn('無法讀取已儲存的設定，改用預設值。', error);
+                    localStorage.removeItem('et_chart_v8_3_config');
+                }
             }
+            colorableTextIds.forEach(id => {
+                const textLength = document.getElementById(id).value.length;
+                textColorMaps[id] = Array.from({ length: textLength }, (_, index) => textColorMaps[id][index] || null);
+                trackedTextValues[id] = document.getElementById(id).value;
+            });
         }
 
         function resetConfig() {
@@ -357,10 +401,73 @@
             }
         }
 
+        function rememberTextSelection(id) {
+            const field = document.getElementById(id);
+            activeTextSelection = {
+                id: id,
+                start: field.selectionStart || 0,
+                end: field.selectionEnd || 0
+            };
+        }
+
+        function syncTextColorMap(id) {
+            const field = document.getElementById(id);
+            const oldText = trackedTextValues[id] || '';
+            const newText = field.value;
+            if (oldText === newText) return;
+
+            let prefixLength = 0;
+            while (prefixLength < oldText.length && prefixLength < newText.length && oldText[prefixLength] === newText[prefixLength]) {
+                prefixLength++;
+            }
+
+            let suffixLength = 0;
+            while (
+                suffixLength < oldText.length - prefixLength &&
+                suffixLength < newText.length - prefixLength &&
+                oldText[oldText.length - 1 - suffixLength] === newText[newText.length - 1 - suffixLength]
+            ) {
+                suffixLength++;
+            }
+
+            const removedLength = oldText.length - prefixLength - suffixLength;
+            const insertedLength = newText.length - prefixLength - suffixLength;
+            const insertedColors = Array(insertedLength).fill(null);
+            textColorMaps[id].splice(prefixLength, removedLength, ...insertedColors);
+            textColorMaps[id].length = newText.length;
+            trackedTextValues[id] = newText;
+        }
+
+        function applySelectedTextColor(color) {
+            if (!activeTextSelection || activeTextSelection.start === activeTextSelection.end) {
+                alert('請先反白選取主標題或內文中的文字。');
+                return;
+            }
+
+            const { id, start, end } = activeTextSelection;
+            for (let index = start; index < end; index++) {
+                textColorMaps[id][index] = color;
+            }
+            draw();
+            saveConfig();
+
+            const field = document.getElementById(id);
+            field.focus();
+            field.setSelectionRange(start, end);
+        }
+
+        colorableTextIds.forEach(id => {
+            const field = document.getElementById(id);
+            ['focus', 'select', 'keyup', 'mouseup'].forEach(eventName => {
+                field.addEventListener(eventName, () => rememberTextSelection(id));
+            });
+        });
+
         document.querySelectorAll('input, textarea, select').forEach(el => {
             el.addEventListener('input', () => {
+                if (colorableTextIds.includes(el.id)) syncTextColorMap(el.id);
                 draw();
-                saveConfig(); 
+                saveConfig();
             });
         });
 
@@ -490,14 +597,14 @@
             ctx.textAlign = "left";
             ctx.shadowColor = "rgba(0,0,0,0.8)";
             ctx.shadowBlur = 20;
-            wrapText(ctx, title, 80, titleY, 920, titleSize * 1.25); 
+            wrapText(ctx, title, 80, titleY, 920, titleSize * 1.25, textColorMaps.mainTitle);
             ctx.shadowBlur = 0;
 
             // 3. Sub
             const sub = document.getElementById('m_Sub').value;
             ctx.fillStyle = "#ddd";
             ctx.font = `bold ${contentSize}px ${FONT_FAMILY}`;
-            wrapText(ctx, sub, 80, 1220, 920, contentSize * 1.4);
+            wrapText(ctx, sub, 80, 1220, 920, contentSize * 1.4, textColorMaps.m_Sub);
         }
 
         function drawGlass() {
@@ -625,21 +732,54 @@
             ctx.drawImage(img, cx, cy, cw, ch,  x, y, w, h);
         }
 
-        function wrapText(context, text, x, y, maxWidth, lineHeight) {
-            var words = text.split('');
-            var line = '';
-            for(var n = 0; n < words.length; n++) {
-                var testLine = line + words[n];
-                var metrics = context.measureText(testLine);
-                if (metrics.width > maxWidth && n > 0) {
-                    context.fillText(line, x, y);
-                    line = words[n];
-                    y += lineHeight;
-                } else {
-                    line = testLine;
+        function wrapText(context, text, x, y, maxWidth, lineHeight, colorMap = null) {
+            const defaultColor = context.fillStyle;
+            const lines = [];
+            let line = [];
+            let lineWidth = 0;
+
+            for (let index = 0; index < text.length; index++) {
+                const character = text[index];
+                if (character === '\n') {
+                    lines.push(line);
+                    line = [];
+                    lineWidth = 0;
+                    continue;
                 }
+
+                const characterWidth = context.measureText(character).width;
+                if (line.length > 0 && lineWidth + characterWidth > maxWidth) {
+                    lines.push(line);
+                    line = [];
+                    lineWidth = 0;
+                }
+                line.push({ character, index, width: characterWidth });
+                lineWidth += characterWidth;
             }
-            context.fillText(line, x, y);
+            lines.push(line);
+
+            lines.forEach((characters, lineIndex) => {
+                let cursorX = x;
+                let segment = '';
+                let segmentColor = null;
+
+                const flushSegment = () => {
+                    if (!segment) return;
+                    context.fillStyle = segmentColor || defaultColor;
+                    context.fillText(segment, cursorX, y + lineIndex * lineHeight);
+                    cursorX += context.measureText(segment).width;
+                    segment = '';
+                };
+
+                characters.forEach(item => {
+                    const characterColor = colorMap && colorMap[item.index] ? colorMap[item.index] : null;
+                    if (segment && characterColor !== segmentColor) flushSegment();
+                    segmentColor = characterColor;
+                    segment += item.character;
+                });
+                flushSegment();
+            });
+            context.fillStyle = defaultColor;
         }
 
         function roundRect(ctx, x, y, width, height, radius) {
