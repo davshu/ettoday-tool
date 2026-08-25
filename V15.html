@@ -322,6 +322,10 @@
                 return { id: String(id), text: value, colors: colorMap };
             }
 
+            function normalizePointText(text) {
+                return String(text || '').replace(/｜/g, '：');
+            }
+
             function syncColorMap(oldText, newText, colors) {
                 const previous = String(oldText || '');
                 const next = String(newText || '');
@@ -391,6 +395,7 @@
 
             global.V15Core = Object.freeze({
                 createPoint,
+                normalizePointText,
                 syncColorMap,
                 movePoint,
                 removePoint,
@@ -435,9 +440,9 @@
                 logoMode: 'company',
                 photo: { zoom: 1, panX: 0.5, panY: 0.5, filter: 'none' },
                 points: [
-                    V15Core.createPoint('point-1', '審查時程｜本週進入逐案表決'),
-                    V15Core.createPoint('point-2', '攻防焦點｜預算刪減與凍結比例'),
-                    V15Core.createPoint('point-3', '後續影響｜民生與建設項目受關注')
+                    V15Core.createPoint('point-1', '審查時程：本週進入逐案表決'),
+                    V15Core.createPoint('point-2', '攻防焦點：預算刪減與凍結比例'),
+                    V15Core.createPoint('point-3', '後續影響：民生與建設項目受關注')
                 ]
             };
         }
@@ -454,7 +459,10 @@
                 let id = point && typeof point.id === 'string' ? point.id : `point-${index + 1}`;
                 if (usedIds.has(id)) id = `point-restored-${index + 1}`;
                 usedIds.add(id);
-                return V15Core.createPoint(id, point && point.text, point && point.colors);
+                const restored = V15Core.createPoint(id, point && point.text, point && point.colors);
+                const normalizedText = V15Core.normalizePointText(restored.text);
+                const normalizedColors = V15Core.syncColorMap(restored.text, normalizedText, restored.colors);
+                return V15Core.createPoint(id, normalizedText, normalizedColors);
             }).filter(point => point.text || point.colors.length) : defaults.points;
 
             return {
@@ -540,7 +548,7 @@
                 input.type = 'text';
                 input.id = `v15-point-${point.id}`;
                 input.value = point.text;
-                input.placeholder = '重點標題｜補充說明';
+                input.placeholder = '請輸入完整重點文字';
                 input.setAttribute('aria-label', `第 ${index + 1} 點文字`);
                 ['focus', 'select', 'keyup', 'mouseup'].forEach(eventName => {
                     input.addEventListener(eventName, () => rememberV15PointSelection(point.id, input));
@@ -583,7 +591,7 @@
 
         function addV15Point() {
             const id = `point-${Date.now()}-${v15PointSequence++}`;
-            v15State.points.push(V15Core.createPoint(id, `新增重點 ${v15State.points.length + 1}｜請輸入說明`));
+            v15State.points.push(V15Core.createPoint(id, `新增重點 ${v15State.points.length + 1}：請輸入完整內容`));
             renderPointEditors();
             draw();
             saveConfig();
@@ -1248,7 +1256,6 @@
 
             const dark = v15State.theme === 'dark';
             const textColor = dark ? '#F5F5F5' : '#202124';
-            const bodyColor = dark ? '#D8DADD' : '#424448';
             ctx.fillStyle = dark ? '#17191D' : '#F4F0E8';
             ctx.fillRect(regions.text.x, regions.text.y, regions.text.w, regions.text.h);
 
@@ -1263,33 +1270,23 @@
             const pointSize = v15State.pointSize;
             const pointGap = v15State.ratio === 55 ? 6 : 20;
             v15State.points.forEach((point, index) => {
-                const separator = point.text.indexOf('｜');
-                const pointTitle = separator >= 0 ? point.text.slice(0, separator) : point.text;
-                const pointCopy = separator >= 0 ? point.text.slice(separator + 1) : '';
-                const titleColors = point.colors.slice(0, separator >= 0 ? separator : point.text.length);
-                const copyColors = separator >= 0 ? point.colors.slice(separator + 1) : [];
+                const pointTextSize = pointSize + 2;
+                const pointLineHeight = pointTextSize * 1.35;
+                const markerCenterY = cursorY - pointTextSize * 0.32;
 
                 ctx.fillStyle = currentTagColor;
                 ctx.beginPath();
-                ctx.arc(96, cursorY + 17, 28, 0, Math.PI * 2);
+                ctx.arc(96, markerCenterY, 26, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.fillStyle = C_WHITE;
-                ctx.font = `900 30px ${FONT_FAMILY}`;
+                ctx.font = `900 27px ${FONT_FAMILY}`;
                 ctx.textAlign = 'center';
-                ctx.fillText(String(index + 1), 96, cursorY + 28);
+                ctx.fillText(String(index + 1), 96, markerCenterY + 10);
 
                 ctx.textAlign = 'left';
                 ctx.fillStyle = textColor;
-                ctx.font = `900 ${pointSize + 4}px ${FONT_FAMILY}`;
-                const pointTitleLineHeight = (pointSize + 4) * 1.25;
-                cursorY = drawColoredWrappedText(ctx, pointTitle, titleColors, 150, cursorY, 860, pointTitleLineHeight);
-
-                if (pointCopy) {
-                    ctx.fillStyle = bodyColor;
-                    ctx.font = `bold ${Math.max(24, pointSize - 6)}px ${FONT_FAMILY}`;
-                    const copyLineHeight = Math.max(24, pointSize - 6) * 1.35;
-                    cursorY = drawColoredWrappedText(ctx, pointCopy, copyColors, 150, cursorY + 5, 860, copyLineHeight);
-                }
+                ctx.font = `900 ${pointTextSize}px ${FONT_FAMILY}`;
+                cursorY = drawColoredWrappedText(ctx, point.text, point.colors, 150, cursorY, 860, pointLineHeight);
                 cursorY += pointGap;
             });
 

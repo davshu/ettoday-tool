@@ -31,3 +31,8 @@ test('layout regions cover the complete canvas', () => {
     { photo: { x: 0, y: 0, w: 1080, h: 608 }, text: { x: 0, y: 608, w: 1080, h: 742 } }
   );
 });
+
+test('legacy point divider becomes plain-list punctuation', () => {
+  assert.equal(core.normalizePointText('審查時程｜本週進入逐案表決'), '審查時程：本週進入逐案表決');
+  assert.equal(core.normalizePointText('完整重點文字'), '完整重點文字');
+});

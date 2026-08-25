@@ -48,3 +48,11 @@ test('title and points share one background with whitespace separation', () => {
   assert.match(titleSection, /const titleToPointsGap = compactText \? 55 : 64/);
   assert.match(titleSection, /ctx\.fillRect\(0, titleBandTop, canvas\.width, 12\)/);
 });
+
+test('points render as one aligned text style while keeping circle markers', () => {
+  const renderer = html.match(/function drawNewsPoints[\s\S]*?(?=\n\s*function drawMagazine)/)?.[0] || '';
+  assert.doesNotMatch(renderer, /pointTitle|pointCopy|titleColors|copyColors|bodyColor/);
+  assert.match(renderer, /const pointTextSize = pointSize \+ 2/);
+  assert.match(renderer, /const markerCenterY = cursorY - pointTextSize \* 0\.32/);
+  assert.match(renderer, /drawColoredWrappedText\(ctx, point\.text, point\.colors, 150, cursorY, 860, pointLineHeight\)/);
+});

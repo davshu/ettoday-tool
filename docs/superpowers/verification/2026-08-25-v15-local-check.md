@@ -62,3 +62,13 @@ The sandbox blocked the external Google Fonts request during one headless mobile
 - The orange photo boundary remains; the title-to-points separation uses whitespace only.
 - Updated default content bottoms remain below the 1260 px safety line: 1251, 1217, and 1082 px.
 - All three layouts retain a 390 px document width at a 390 px mobile viewport.
+
+## Single-Style Point List Revision
+
+- Orange circular numbers remain unchanged and align with the first line of each point.
+- Each point renders as one complete string with one font size and weight; title/body splitting was removed.
+- Legacy `｜` separators normalize to `：` when saved content is restored.
+- Wrapped point text keeps a hanging indent aligned with the first line.
+- Default content remains exportable at every ratio: 1103, 1069, and 934 px.
+- A long wrapped first point remains exportable with a 1126 px content bottom.
+- Mobile recheck at 390 px: document width remains 390 px with no horizontal overflow.
