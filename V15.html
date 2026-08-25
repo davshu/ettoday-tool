@@ -274,17 +274,21 @@
                 </div>
                 <p class="v15-color-hint">反白選取主標題或任一重點文字後套用。</p>
 
+                <button type="button" class="action-btn" onclick="resetV15PhotoPosition()">重設照片位置</button>
+                <p id="v15Validation" class="v15-validation" aria-live="polite">請先載入照片。</p>
+            </div>
+
+            <div id="globalLogoControls" class="global-logo-controls">
+                <div class="section-header">右上 Logo</div>
                 <label class="checkbox-label">
                     <input type="checkbox" id="v15ShowLogo" checked onchange="setV15ShowLogo(this.checked)">
-                    顯示公司 Logo（沿用 V14 尺寸）
+                    顯示右上 Logo（沿用 V14 尺寸）
                 </label>
                 <label>Logo 樣式</label>
                 <div id="v15LogoMode" class="segmented-control two" role="group" aria-label="Logo 樣式">
                     <button type="button" class="segment-btn active" data-logo-mode="company" onclick="setV15LogoMode('company')">公司 Logo</button>
                     <button type="button" class="segment-btn" data-logo-mode="capsule" onclick="setV15LogoMode('capsule')">V14 文字膠囊</button>
                 </div>
-                <button type="button" class="action-btn" onclick="resetV15PhotoPosition()">重設照片位置</button>
-                <p id="v15Validation" class="v15-validation" aria-live="polite">請先載入照片。</p>
             </div>
 
             <div class="section-header">其他 (資料來源)</div>
@@ -1028,9 +1032,9 @@
             if (layout === 'magazine') drawMagazine();
             else if (layout === 'glass') drawGlass();
 
-            drawLogo();
             drawSource();
-            drawDate(); 
+            drawDate();
+            drawV15LogoLayer();
         }
 
         function updateV15Validation(result) {
@@ -1188,17 +1192,15 @@
             const titleBandTop = regions.text.y;
             const compactText = v15State.ratio === 55;
             const defaultTitleBandPaddingTop = 54;
-            const titleBandPaddingTop = compactText ? 32 : defaultTitleBandPaddingTop;
-            const titleBandPaddingBottom = compactText ? 18 : 28;
-            const titleToPointsGap = compactText ? 20 : 32;
+            const titleBandPaddingTop = compactText ? 20 : defaultTitleBandPaddingTop;
+            const titleBandPaddingBottom = compactText ? 12 : 28;
+            const titleToPointsGap = compactText ? 55 : 64;
             const titleLineHeight = titleSize * 1.18;
 
             ctx.font = `900 ${titleSize}px ${FONT_FAMILY}`;
             const titleMeasure = measureWrappedText(ctx, title, textWidth, titleLineHeight);
             const titleBandHeight = titleBandPaddingTop + titleMeasure.lines.length * titleLineHeight + titleBandPaddingBottom;
 
-            ctx.fillStyle = dark ? '#22252A' : '#FFFFFF';
-            ctx.fillRect(0, titleBandTop, canvas.width, titleBandHeight);
             ctx.fillStyle = currentTagColor;
             ctx.fillRect(0, titleBandTop, canvas.width, 12);
 
@@ -1207,9 +1209,6 @@
             ctx.font = `900 ${titleSize}px ${FONT_FAMILY}`;
             const titleBaseline = titleBandTop + titleBandPaddingTop + titleSize;
             drawColoredWrappedText(ctx, title, textColorMaps.mainTitle, left, titleBaseline, textWidth, titleLineHeight);
-
-            ctx.fillStyle = dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)';
-            ctx.fillRect(0, titleBandTop + titleBandHeight - 2, canvas.width, 2);
 
             return {
                 cursorY: titleBandTop + titleBandHeight + titleToPointsGap,
@@ -1262,7 +1261,7 @@
             if (titleBand.titleMeasure.lines.length > 3) reasons.push('主標題行數過多。');
 
             const pointSize = v15State.pointSize;
-            const pointGap = v15State.ratio === 55 ? 12 : 20;
+            const pointGap = v15State.ratio === 55 ? 6 : 20;
             v15State.points.forEach((point, index) => {
                 const separator = point.text.indexOf('｜');
                 const pointTitle = separator >= 0 ? point.text.slice(0, separator) : point.text;
@@ -1407,22 +1406,6 @@
             ctx.fillStyle = "white";
             ctx.textAlign = "center";
             ctx.fillText(text, x + w/2, y + h/2 + fontSize/3);
-        }
-
-        function drawLogo() {
-            const w = 180; 
-            const h = 64;
-            const x = canvas.width - w - 50;
-            const y = 80;
-            
-            ctx.fillStyle = "rgba(0,0,0,0.6)";
-            roundRect(ctx, x, y, w, h, 32);
-            ctx.fill();
-            
-            ctx.fillStyle = "white";
-            ctx.font = "bold 34px Arial, 'Microsoft JhengHei', sans-serif"; 
-            ctx.textAlign = "center";
-            ctx.fillText("ETtoday", x + w/2, y + 43);
         }
 
         function drawSource() {

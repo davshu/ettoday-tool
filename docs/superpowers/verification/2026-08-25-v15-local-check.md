@@ -52,3 +52,13 @@ The sandbox blocked the external Google Fonts request during one headless mobile
   - 45/55 content bottom: 1185 px.
   - 35/65 content bottom: 1050 px.
 - Mobile recheck at 390 px: no horizontal overflow, Company Logo control active, canvas output valid.
+
+## Final Shared-Logo Revision
+
+- Logo controls are visible and usable in Magazine, Glass, and News Points layouts.
+- Magazine renders the Company Logo option; Glass renders the V14 capsule option.
+- Every layout draws the selected Logo through the same final canvas layer.
+- News Points title and point areas share the same background pixel color.
+- The orange photo boundary remains; the title-to-points separation uses whitespace only.
+- Updated default content bottoms remain below the 1260 px safety line: 1251, 1217, and 1082 px.
+- All three layouts retain a 390 px document width at a 390 px mobile viewport.

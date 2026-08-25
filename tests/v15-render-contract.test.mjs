@@ -28,7 +28,23 @@ test('V15 renderer separates the title from the photo with a title band', () => 
 
 test('photo-heavy ratio uses compact text spacing', () => {
   assert.match(html, /const compactText = v15State\.ratio === 55/);
-  assert.match(html, /const titleBandPaddingTop = compactText \? 32 : defaultTitleBandPaddingTop/);
-  assert.match(html, /const pointGap = v15State\.ratio === 55 \? 12 : 20/);
+  assert.match(html, /const titleBandPaddingTop = compactText \? 20 : defaultTitleBandPaddingTop/);
+  assert.match(html, /const pointGap = v15State\.ratio === 55 \? 6 : 20/);
   assert.match(html, /cursorY \+= pointGap/);
+});
+
+test('logo controls and renderer are shared by every layout', () => {
+  const newsGroupStart = html.indexOf('id="group-news-points"');
+  const globalLogoStart = html.indexOf('id="globalLogoControls"');
+  const sourceStart = html.indexOf('其他 (資料來源)');
+  assert.ok(newsGroupStart >= 0 && globalLogoStart > newsGroupStart && sourceStart > globalLogoStart);
+  assert.doesNotMatch(html.slice(newsGroupStart, globalLogoStart), /id="v15ShowLogo"/);
+  assert.match(html, /drawSource\(\);\s*drawDate\(\);\s*drawV15LogoLayer\(\);/);
+});
+
+test('title and points share one background with whitespace separation', () => {
+  const titleSection = html.match(/function drawV15TitleBand[\s\S]*?(?=\n\s*function drawNewsPoints)/)?.[0] || '';
+  assert.doesNotMatch(titleSection, /#22252A|#FFFFFF|titleBandHeight - 2/);
+  assert.match(titleSection, /const titleToPointsGap = compactText \? 55 : 64/);
+  assert.match(titleSection, /ctx\.fillRect\(0, titleBandTop, canvas\.width, 12\)/);
 });
