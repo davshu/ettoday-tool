@@ -24,5 +24,10 @@ test('V15 draft exists and keeps the V14 canvas and layouts', async () => {
   assert.match(v15, /function startPhotoDrag\(/);
   assert.match(v15, /function movePhotoDrag\(/);
   assert.match(v15, /function resetV15PhotoPosition\(/);
+  assert.match(v15, /id="downloadButton"/);
+  assert.match(v15, /id="copyButton"/);
+  assert.match(v15, /id="resetAllButton"/);
+  assert.match(v15, /confirm\('確定要重設所有文字、照片位置與設定嗎？'\)/);
+  assert.match(v15, /if \(!v15RenderResult\.valid\) return/);
   assert.ok(v14.includes('ETtoday 神器 V14'));
 });

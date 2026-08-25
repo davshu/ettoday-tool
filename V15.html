@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title> 圖卡神器 V14 </title>
+    <title>ETtoday 圖卡神器 V15</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,7 @@
         
         .container { display: flex; gap: 30px; max-width: 1600px; margin: 0 auto; height: 95vh; }
         .editor { flex: 0 0 450px; background: #333; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); overflow-y: auto; display: flex; flex-direction: column; }
-        .preview { flex: 1; background: #111; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 20px; border: 1px solid #444; overflow: hidden; position: relative; }
+        .preview { flex: 1; background: #111; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 20px; border: 1px solid #444; overflow: hidden; position: relative; box-sizing: border-box; }
         
         @media (max-width: 900px) {
             body { padding: 10px; }
@@ -296,7 +296,7 @@
                 <button id="copyButton" class="btn-copy" onclick="copyImage()" title="複製到剪貼簿">📋 複製</button>
             </div>
             
-            <button class="action-btn" onclick="resetConfig()">↺ 重置所有設定</button>
+            <button id="resetAllButton" class="action-btn" onclick="resetConfig()">↺ 重設全部</button>
         </div>
 
         <div class="preview">
@@ -451,8 +451,8 @@
                 showLogo: raw.showLogo !== false,
                 photo: {
                     zoom: Math.min(3, Math.max(1, Number(photo.zoom) || 1)),
-                    panX: Math.min(1, Math.max(0, Number(photo.panX) || 0.5)),
-                    panY: Math.min(1, Math.max(0, Number(photo.panY) || 0.5)),
+                    panX: Math.min(1, Math.max(0, Number.isFinite(Number(photo.panX)) ? Number(photo.panX) : 0.5)),
+                    panY: Math.min(1, Math.max(0, Number.isFinite(Number(photo.panY)) ? Number(photo.panY) : 0.5)),
                     filter: ['none', 'grayscale', 'brightness', 'darken', 'contrast'].includes(photo.filter) ? photo.filter : 'none'
                 },
                 points: points.length ? points : defaults.points
@@ -764,7 +764,7 @@
         }
 
         function resetConfig() {
-            if(confirm('確定要重置所有文字和設定嗎？')) {
+            if(confirm('確定要重設所有文字、照片位置與設定嗎？')) {
                 localStorage.removeItem('et_chart_v15_config');
                 location.reload();
             }
@@ -1472,6 +1472,9 @@
         }
 
         function downloadImage() {
+            if (document.getElementById('layoutSelector').value === 'news-points') {
+                if (!v15RenderResult.valid) return;
+            }
             try {
                 var link = document.createElement('a');
                 link.download = getSafeFilename();
@@ -1484,6 +1487,9 @@
         }
         
         async function copyImage() {
+            if (document.getElementById('layoutSelector').value === 'news-points') {
+                if (!v15RenderResult.valid) return;
+            }
             try {
                 const blob = await new Promise(resolve => canvas.toBlob(resolve));
                 if (!blob) throw new Error('CORS tainted');
