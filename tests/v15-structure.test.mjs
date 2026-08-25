@@ -18,5 +18,11 @@ test('V15 draft exists and keeps the V14 canvas and layouts', async () => {
   assert.match(v15, /id="v15AddPoint"/);
   assert.match(v15, /id="v15ShowLogo"/);
   assert.match(v15, /id="v15Validation"/);
+  assert.match(v15, /images\.weserv\.nl/);
+  assert.match(v15, /wsrv\.nl/);
+  assert.match(v15, /corsproxy\.io/);
+  assert.match(v15, /function startPhotoDrag\(/);
+  assert.match(v15, /function movePhotoDrag\(/);
+  assert.match(v15, /function resetV15PhotoPosition\(/);
   assert.ok(v14.includes('ETtoday 神器 V14'));
 });
