@@ -4,9 +4,9 @@ Date: 2026-08-25
 
 ## Scope
 
-- Local-only `V15.html` draft based on V14.
-- Existing `index.html` remains unchanged.
-- No GitHub push or Pages deployment.
+- Approved `V15.html` draft based on V14.
+- `index.html` promoted to the approved V15 content for GitHub Pages release.
+- V14 remains available through Git history and the verified desktop backup.
 
 ## Automated Checks
 
@@ -77,3 +77,11 @@ The sandbox blocked the external Google Fonts request during one headless mobile
 
 - The News Points category tab and selected top-right Logo share the same 80 px top edge.
 - Browser-rendered Canvas remains exportable after the alignment change.
+
+## Release Preflight
+
+- `index.html` and `V15.html` SHA256: `8255D850B9F152E01CDEF176274824A6C5E7067A2ACBCE975B13591751F7E106`.
+- Full Node suite: 13 passed, 0 failed.
+- Both production inline scripts compile.
+- Desktop 1440 px and mobile 390 px browser checks load the Company Logo and produce valid Canvas output without page errors.
+- Remote sync check before release: local `main` was 12 commits ahead and 0 behind `origin/main`.

@@ -652,13 +652,13 @@
         document.fonts.ready.then(function() { draw(); });
 
         window.onload = function() {
-            loadConfig(); 
+            loadConfig();
             legacyPhotoState = readPhotoControls();
-            switchLayout(false); 
+            switchLayout(false);
             updateAllVals();
             syncV15Controls();
             renderPointEditors();
-            draw(); 
+            draw();
         };
 
         function loadImgFromUrl() {

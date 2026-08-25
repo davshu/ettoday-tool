@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title> 圖卡神器 V14 </title>
+    <title>ETtoday 圖卡神器 V15</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,7 @@
         
         .container { display: flex; gap: 30px; max-width: 1600px; margin: 0 auto; height: 95vh; }
         .editor { flex: 0 0 450px; background: #333; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); overflow-y: auto; display: flex; flex-direction: column; }
-        .preview { flex: 1; background: #111; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 20px; border: 1px solid #444; overflow: hidden; position: relative; }
+        .preview { flex: 1; background: #111; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 20px; border: 1px solid #444; overflow: hidden; position: relative; box-sizing: border-box; }
         
         @media (max-width: 900px) {
             body { padding: 10px; }
@@ -53,6 +53,7 @@
         .action-row { display: flex; gap: 10px; margin-top: 30px; }
         .btn-main { flex: 2; background: linear-gradient(135deg, #F58220, #d96a0b); color: white; border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(245, 130, 32, 0.3); transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-main:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-main:disabled, .btn-copy:disabled { transform: none; box-shadow: none; opacity: 0.45; cursor: not-allowed; }
         .btn-copy { flex: 1; background: #00AA55; color: white; border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 170, 85, 0.3); transition: 0.2s; display: flex; align-items: center; justify-content: center; }
         .btn-copy:hover { transform: translateY(-2px); background: #00bb5d; }
         .action-btn { background: #444; border: 1px solid #666; font-size: 14px; padding: 10px; margin-top: 10px; width: 100%; cursor: pointer; color: #ddd; border-radius: 6px; }
@@ -77,12 +78,29 @@
         .section-header { color: #F58220; font-size: 14px; margin-top: 20px; margin-bottom: 5px; border-left: 3px solid #F58220; padding-left: 8px; font-weight: bold; }
         .checkbox-label { display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: normal; margin-top: 10px; justify-content: flex-start; }
         input[type="checkbox"] { width: 20px; height: 20px; accent-color: #F58220; margin: 0; }
+        .segmented-control { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+        .segmented-control.two { grid-template-columns: repeat(2, 1fr); }
+        .segment-btn { padding: 10px 6px; border: 1px solid #666; background: #444; color: #eee; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .segment-btn.active { border-color: #F58220; background: #F58220; color: #1f1f1f; }
+        .v15-points-editor { display: grid; gap: 8px; margin-top: 10px; }
+        .v15-point-row { display: grid; grid-template-columns: minmax(0, 1fr) repeat(3, 38px); gap: 6px; align-items: center; }
+        .v15-point-row input { min-width: 0; margin: 0; }
+        .icon-btn { width: 38px; height: 38px; padding: 0; border: 1px solid #666; border-radius: 6px; background: #444; color: #eee; cursor: pointer; }
+        .icon-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .v15-validation { margin: 10px 0 0; padding: 10px; border-left: 3px solid #00AA55; background: #292929; color: #bde8cd; font-size: 13px; }
+        .v15-validation.invalid { border-color: #E72D48; color: #ffb6c2; }
+        .v15-color-hint { margin: 6px 0 0; color: #888; font-size: 12px; }
+
+        @media (max-width: 500px) {
+            .v15-point-row { grid-template-columns: minmax(0, 1fr) repeat(3, 42px); }
+            .segment-btn { min-height: 44px; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="editor">
-            <h2>📱 ETtoday 神器 V14</h2>
+            <h2>📱 ETtoday 神器 V15</h2>
             <div style="font-size:12px; color:#888; margin-bottom:10px;">
                 ✨ 自動權限解鎖：已升級多重代理通道 <br>
             </div>
@@ -91,6 +109,7 @@
             <select id="layoutSelector" onchange="switchLayout()">
                 <option value="magazine">版型 1：雜誌封面風</option>
                 <option value="glass">版型 2：懸浮玻璃卡片</option>
+                <option value="news-points">版型 3：新聞三點整理</option>
             </select>
 
             <div class="section-header">背景處理</div>
@@ -106,7 +125,7 @@
             <div style="font-size:11px; color:#666; margin-top:4px;">* 程式將自動切換 3 組代理伺服器來嘗試下載</div>
 
             <label>圖片濾鏡</label>
-            <select id="bgFilter" onchange="draw()">
+            <select id="bgFilter" onchange="handleImageControlChange('filter')">
                 <option value="none">無濾鏡 (原圖)</option>
                 <option value="grayscale">黑白 (質感)</option>
                 <option value="brightness">增亮 20% (暗圖專用)</option>
@@ -117,15 +136,15 @@
             <label>縮放 <span id="v_bgZoom" class="val-display">100</span></label>
             <div class="slider-group">
                 <span class="slider-icon">🔍</span>
-                <input type="range" id="bgZoom" min="100" max="300" step="5" value="100" oninput="updateVal('bgZoom'); draw()">
+                <input type="range" id="bgZoom" min="100" max="300" step="5" value="100" oninput="handleImageControlChange('zoom')">
             </div>
             
             <label>移動 (X, Y) <span class="val-display" id="v_pan">50, 50</span></label>
             <div class="slider-group">
                 <span class="slider-icon">↔</span>
-                <input type="range" id="bgPanX" min="0" max="100" step="2" value="50" oninput="updateVal('pan'); draw()">
+                <input type="range" id="bgPanX" min="0" max="100" step="2" value="50" oninput="handleImageControlChange('pan')">
                 <span class="slider-icon">↕</span>
-                <input type="range" id="bgPanY" min="0" max="100" step="2" value="50" oninput="updateVal('pan'); draw()">
+                <input type="range" id="bgPanY" min="0" max="100" step="2" value="50" oninput="handleImageControlChange('pan')">
             </div>
             
             <div class="section-header">主標題 (強制粗體)</div>
@@ -216,6 +235,62 @@
                 </div>
             </div>
 
+            <div id="group-news-points" class="input-group">
+                <div class="section-header">新版型比例</div>
+                <div id="v15Ratio" class="segmented-control" role="group" aria-label="照片與文字比例">
+                    <button type="button" class="segment-btn" data-ratio="55" onclick="setV15Ratio(55)">照片多<br>55 / 45</button>
+                    <button type="button" class="segment-btn active" data-ratio="45" onclick="setV15Ratio(45)">平衡<br>45 / 55</button>
+                    <button type="button" class="segment-btn" data-ratio="35" onclick="setV15Ratio(35)">文字多<br>35 / 65</button>
+                </div>
+
+                <label>文字區底色</label>
+                <div id="v15Theme" class="segmented-control two" role="group" aria-label="文字區底色">
+                    <button type="button" class="segment-btn active" data-theme="light" onclick="setV15Theme('light')">明亮</button>
+                    <button type="button" class="segment-btn" data-theme="dark" onclick="setV15Theme('dark')">黑暗</button>
+                </div>
+
+                <label>重點字體大小 <span id="v_v15PointSize" class="val-display">40</span></label>
+                <div class="slider-group">
+                    <span class="slider-icon">A-</span>
+                    <input type="range" id="v15PointSize" min="28" max="54" step="2" value="40" oninput="setV15PointSize(this.value)">
+                    <span class="slider-icon">A+</span>
+                </div>
+
+                <div class="section-header">重點文字</div>
+                <div id="v15PointsEditor" class="v15-points-editor"></div>
+                <button type="button" id="v15AddPoint" class="action-btn" onclick="addV15Point()">＋ 新增重點</button>
+
+                <label>局部文字顏色</label>
+                <div class="text-color-tools" aria-label="新版型局部文字顏色">
+                    <button type="button" class="text-color-swatch" style="background:#FC8416" aria-label="ET 橘" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#FC8416')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#E72D48" aria-label="快訊紅" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#E72D48')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#FAC03D" aria-label="重點黃" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#FAC03D')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#91CFD5" aria-label="資訊藍" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#91CFD5')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#66D3C0" aria-label="生活青" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#66D3C0')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#91C53A" aria-label="健康綠" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#91C53A')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#E6397C" aria-label="娛樂粉" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#E6397C')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#B56CFF" aria-label="焦點紫" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#B56CFF')"></button>
+                    <button type="button" class="text-color-clear" aria-label="清除顏色" onmousedown="event.preventDefault()" onclick="applySelectedTextColor(null)">×</button>
+                </div>
+                <p class="v15-color-hint">反白選取主標題或任一重點文字後套用。</p>
+
+                <button type="button" class="action-btn" onclick="resetV15PhotoPosition()">重設照片位置</button>
+                <p id="v15Validation" class="v15-validation" aria-live="polite">請先載入照片。</p>
+            </div>
+
+            <div id="globalLogoControls" class="global-logo-controls">
+                <div class="section-header">右上 Logo</div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="v15ShowLogo" checked onchange="setV15ShowLogo(this.checked)">
+                    顯示右上 Logo（沿用 V14 尺寸）
+                </label>
+                <label>Logo 樣式</label>
+                <div id="v15LogoMode" class="segmented-control two" role="group" aria-label="Logo 樣式">
+                    <button type="button" class="segment-btn active" data-logo-mode="company" onclick="setV15LogoMode('company')">公司 Logo</button>
+                    <button type="button" class="segment-btn" data-logo-mode="capsule" onclick="setV15LogoMode('capsule')">V14 文字膠囊</button>
+                </div>
+            </div>
+
             <div class="section-header">其他 (資料來源)</div>
             <div class="btn-group" style="margin-bottom: 8px;">
                 <button class="small-btn" onclick="setSourceText('資料來源：ETtoday 採訪團隊')">預設</button>
@@ -226,11 +301,11 @@
             <input type="text" id="sourceText" value="資料來源：ETtoday 採訪團隊" oninput="draw()">
             
             <div class="action-row">
-                <button class="btn-main" onclick="downloadImage()">📥 下載圖卡</button>
-                <button class="btn-copy" onclick="copyImage()" title="複製到剪貼簿">📋 複製</button>
+                <button id="downloadButton" class="btn-main" onclick="downloadImage()">📥 下載圖卡</button>
+                <button id="copyButton" class="btn-copy" onclick="copyImage()" title="複製到剪貼簿">📋 複製</button>
             </div>
             
-            <button class="action-btn" onclick="resetConfig()">↺ 重置所有設定</button>
+            <button id="resetAllButton" class="action-btn" onclick="resetConfig()">↺ 重設全部</button>
         </div>
 
         <div class="preview">
@@ -238,12 +313,108 @@
         </div>
     </div>
 
+    <script id="v15-core">
+        (function(global) {
+            function createPoint(id, text, colors) {
+                const value = String(text || '');
+                const colorMap = Array.isArray(colors) ? colors.slice(0, value.length) : [];
+                while (colorMap.length < value.length) colorMap.push(null);
+                return { id: String(id), text: value, colors: colorMap };
+            }
+
+            function normalizePointText(text) {
+                return String(text || '').replace(/｜/g, '：');
+            }
+
+            function syncColorMap(oldText, newText, colors) {
+                const previous = String(oldText || '');
+                const next = String(newText || '');
+                const nextColors = Array.isArray(colors) ? colors.slice(0, previous.length) : [];
+                while (nextColors.length < previous.length) nextColors.push(null);
+
+                let prefixLength = 0;
+                while (
+                    prefixLength < previous.length &&
+                    prefixLength < next.length &&
+                    previous[prefixLength] === next[prefixLength]
+                ) {
+                    prefixLength++;
+                }
+
+                let suffixLength = 0;
+                while (
+                    suffixLength < previous.length - prefixLength &&
+                    suffixLength < next.length - prefixLength &&
+                    previous[previous.length - 1 - suffixLength] === next[next.length - 1 - suffixLength]
+                ) {
+                    suffixLength++;
+                }
+
+                const removedLength = previous.length - prefixLength - suffixLength;
+                const insertedLength = next.length - prefixLength - suffixLength;
+                nextColors.splice(prefixLength, removedLength, ...Array(insertedLength).fill(null));
+                nextColors.length = next.length;
+                return nextColors;
+            }
+
+            function movePoint(points, id, direction) {
+                const result = points.map(point => createPoint(point.id, point.text, point.colors));
+                const index = result.findIndex(point => point.id === id);
+                const target = index + Number(direction);
+                if (index < 0 || target < 0 || target >= result.length) return result;
+                const [point] = result.splice(index, 1);
+                result.splice(target, 0, point);
+                return result;
+            }
+
+            function removePoint(points, id) {
+                return points
+                    .filter(point => point.id !== id)
+                    .map(point => createPoint(point.id, point.text, point.colors));
+            }
+
+            function getLayoutRegions(ratio) {
+                const safeRatio = [35, 45, 55].includes(Number(ratio)) ? Number(ratio) : 45;
+                const photoHeight = Math.round(1350 * safeRatio / 100);
+                return {
+                    photo: { x: 0, y: 0, w: 1080, h: photoHeight },
+                    text: { x: 0, y: photoHeight, w: 1080, h: 1350 - photoHeight }
+                };
+            }
+
+            function getSafeBaseName(title, now) {
+                const date = now instanceof Date ? now : new Date();
+                const stamp = date.getFullYear() +
+                    (date.getMonth() + 1).toString().padStart(2, '0') +
+                    date.getDate().toString().padStart(2, '0') + '_' +
+                    date.getHours().toString().padStart(2, '0') +
+                    date.getMinutes().toString().padStart(2, '0');
+                const safeTitle = String(title || '').trim().replace(/[\\/:*?"<>|]/g, '') || 'ettoday_chart';
+                return `${stamp}_${safeTitle}`;
+            }
+
+            global.V15Core = Object.freeze({
+                createPoint,
+                normalizePointText,
+                syncColorMap,
+                movePoint,
+                removePoint,
+                getLayoutRegions,
+                getSafeBaseName
+            });
+        })(globalThis);
+    </script>
+
     <script>
         const canvas = document.getElementById('myCanvas');
         const ctx = canvas.getContext('2d');
         const C_WHITE = "#FFFFFF";
         const C_BLACK = "#000000";
         const FONT_FAMILY = "'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', sans-serif";
+        const V15_HEADER_TOP = 80;
+        const companyLogoImg = new Image();
+        companyLogoImg.src = 'assets/ettoday-logo-v15.png';
+        companyLogoImg.addEventListener('load', () => draw());
         
         let bgImg = null;
         let currentTagColor = "#F58220";
@@ -254,14 +425,240 @@
             m_Sub: document.getElementById('m_Sub').value
         };
         let activeTextSelection = null;
+        let v15PointSequence = 4;
+        let v15State = createDefaultV15State();
+        let v15RenderResult = { valid: false, reasons: ['請先載入照片。'], contentBottom: 0, safeBottom: 0 };
+        let activeLayout = 'magazine';
+        let legacyPhotoState = { zoom: 1, panX: 0.5, panY: 0.5, filter: 'none' };
+        let photoDragState = null;
+
+        function createDefaultV15State() {
+            return {
+                ratio: 45,
+                theme: 'light',
+                pointSize: 40,
+                showLogo: true,
+                logoMode: 'company',
+                photo: { zoom: 1, panX: 0.5, panY: 0.5, filter: 'none' },
+                points: [
+                    V15Core.createPoint('point-1', '審查時程：本週進入逐案表決'),
+                    V15Core.createPoint('point-2', '攻防焦點：預算刪減與凍結比例'),
+                    V15Core.createPoint('point-3', '後續影響：民生與建設項目受關注')
+                ]
+            };
+        }
+
+        function normalizeV15State(raw) {
+            const defaults = createDefaultV15State();
+            if (!raw || typeof raw !== 'object') return defaults;
+            const ratio = [35, 45, 55].includes(Number(raw.ratio)) ? Number(raw.ratio) : 45;
+            const theme = ['light', 'dark'].includes(raw.theme) ? raw.theme : 'light';
+            const pointSize = Math.min(54, Math.max(28, Number(raw.pointSize) || 40));
+            const photo = raw.photo && typeof raw.photo === 'object' ? raw.photo : {};
+            const usedIds = new Set();
+            const points = Array.isArray(raw.points) ? raw.points.map((point, index) => {
+                let id = point && typeof point.id === 'string' ? point.id : `point-${index + 1}`;
+                if (usedIds.has(id)) id = `point-restored-${index + 1}`;
+                usedIds.add(id);
+                const restored = V15Core.createPoint(id, point && point.text, point && point.colors);
+                const normalizedText = V15Core.normalizePointText(restored.text);
+                const normalizedColors = V15Core.syncColorMap(restored.text, normalizedText, restored.colors);
+                return V15Core.createPoint(id, normalizedText, normalizedColors);
+            }).filter(point => point.text || point.colors.length) : defaults.points;
+
+            return {
+                ratio,
+                theme,
+                pointSize,
+                showLogo: raw.showLogo !== false,
+                logoMode: ['company', 'capsule'].includes(raw.logoMode) ? raw.logoMode : 'company',
+                photo: {
+                    zoom: Math.min(3, Math.max(1, Number(photo.zoom) || 1)),
+                    panX: Math.min(1, Math.max(0, Number.isFinite(Number(photo.panX)) ? Number(photo.panX) : 0.5)),
+                    panY: Math.min(1, Math.max(0, Number.isFinite(Number(photo.panY)) ? Number(photo.panY) : 0.5)),
+                    filter: ['none', 'grayscale', 'brightness', 'darken', 'contrast'].includes(photo.filter) ? photo.filter : 'none'
+                },
+                points: points.length ? points : defaults.points
+            };
+        }
+
+        function syncV15Controls() {
+            document.querySelectorAll('#v15Ratio [data-ratio]').forEach(button => {
+                button.classList.toggle('active', Number(button.dataset.ratio) === v15State.ratio);
+            });
+            document.querySelectorAll('#v15Theme [data-theme]').forEach(button => {
+                button.classList.toggle('active', button.dataset.theme === v15State.theme);
+            });
+            document.getElementById('v15PointSize').value = v15State.pointSize;
+            document.getElementById('v_v15PointSize').innerText = v15State.pointSize;
+            document.getElementById('v15ShowLogo').checked = v15State.showLogo;
+            document.querySelectorAll('#v15LogoMode [data-logo-mode]').forEach(button => {
+                button.classList.toggle('active', button.dataset.logoMode === v15State.logoMode);
+                button.disabled = !v15State.showLogo;
+            });
+        }
+
+        function readPhotoControls() {
+            return {
+                zoom: document.getElementById('bgZoom').value / 100,
+                panX: document.getElementById('bgPanX').value / 100,
+                panY: document.getElementById('bgPanY').value / 100,
+                filter: document.getElementById('bgFilter').value
+            };
+        }
+
+        function applyPhotoControls(photo) {
+            document.getElementById('bgZoom').value = Math.round(photo.zoom * 100);
+            document.getElementById('bgPanX').value = Math.round(photo.panX * 100);
+            document.getElementById('bgPanY').value = Math.round(photo.panY * 100);
+            document.getElementById('bgFilter').value = photo.filter;
+            updateVal('bgZoom');
+            updateVal('pan');
+        }
+
+        function handleImageControlChange(kind) {
+            if (kind === 'zoom') updateVal('bgZoom');
+            if (kind === 'pan') updateVal('pan');
+            const current = readPhotoControls();
+            if (document.getElementById('layoutSelector').value === 'news-points') {
+                v15State.photo = current;
+            } else {
+                legacyPhotoState = current;
+            }
+            draw();
+            saveConfig();
+        }
+
+        function rememberV15PointSelection(pointId, field) {
+            activeTextSelection = {
+                pointId,
+                start: field.selectionStart || 0,
+                end: field.selectionEnd || 0
+            };
+        }
+
+        function renderPointEditors() {
+            const container = document.getElementById('v15PointsEditor');
+            if (!container) return;
+            container.replaceChildren();
+            v15State.points.forEach((point, index) => {
+                const row = document.createElement('div');
+                row.className = 'v15-point-row';
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = `v15-point-${point.id}`;
+                input.value = point.text;
+                input.placeholder = '請輸入完整重點文字';
+                input.setAttribute('aria-label', `第 ${index + 1} 點文字`);
+                ['focus', 'select', 'keyup', 'mouseup'].forEach(eventName => {
+                    input.addEventListener(eventName, () => rememberV15PointSelection(point.id, input));
+                });
+                input.addEventListener('input', () => {
+                    point.colors = V15Core.syncColorMap(point.text, input.value, point.colors);
+                    point.text = input.value;
+                    rememberV15PointSelection(point.id, input);
+                    draw();
+                    saveConfig();
+                });
+
+                const up = document.createElement('button');
+                up.type = 'button';
+                up.className = 'icon-btn';
+                up.textContent = '↑';
+                up.disabled = index === 0;
+                up.setAttribute('aria-label', `上移第 ${index + 1} 點`);
+                up.addEventListener('click', () => moveV15Point(point.id, -1));
+
+                const down = document.createElement('button');
+                down.type = 'button';
+                down.className = 'icon-btn';
+                down.textContent = '↓';
+                down.disabled = index === v15State.points.length - 1;
+                down.setAttribute('aria-label', `下移第 ${index + 1} 點`);
+                down.addEventListener('click', () => moveV15Point(point.id, 1));
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'icon-btn';
+                remove.textContent = '×';
+                remove.setAttribute('aria-label', `刪除第 ${index + 1} 點`);
+                remove.addEventListener('click', () => removeV15Point(point.id));
+
+                row.append(input, up, down, remove);
+                container.append(row);
+            });
+        }
+
+        function addV15Point() {
+            const id = `point-${Date.now()}-${v15PointSequence++}`;
+            v15State.points.push(V15Core.createPoint(id, `新增重點 ${v15State.points.length + 1}：請輸入完整內容`));
+            renderPointEditors();
+            draw();
+            saveConfig();
+        }
+
+        function removeV15Point(id) {
+            v15State.points = V15Core.removePoint(v15State.points, id);
+            activeTextSelection = null;
+            renderPointEditors();
+            draw();
+            saveConfig();
+        }
+
+        function moveV15Point(id, direction) {
+            v15State.points = V15Core.movePoint(v15State.points, id, direction);
+            activeTextSelection = null;
+            renderPointEditors();
+            draw();
+            saveConfig();
+        }
+
+        function setV15Ratio(ratio) {
+            v15State.ratio = [35, 45, 55].includes(Number(ratio)) ? Number(ratio) : 45;
+            syncV15Controls();
+            draw();
+            saveConfig();
+        }
+
+        function setV15Theme(theme) {
+            v15State.theme = theme === 'dark' ? 'dark' : 'light';
+            syncV15Controls();
+            draw();
+            saveConfig();
+        }
+
+        function setV15PointSize(size) {
+            v15State.pointSize = Math.min(54, Math.max(28, Number(size) || 40));
+            syncV15Controls();
+            draw();
+            saveConfig();
+        }
+
+        function setV15ShowLogo(show) {
+            v15State.showLogo = Boolean(show);
+            syncV15Controls();
+            draw();
+            saveConfig();
+        }
+
+        function setV15LogoMode(mode) {
+            v15State.logoMode = mode === 'capsule' ? 'capsule' : 'company';
+            syncV15Controls();
+            draw();
+            saveConfig();
+        }
 
         document.fonts.ready.then(function() { draw(); });
 
         window.onload = function() {
-            loadConfig(); 
-            switchLayout(false); 
+            loadConfig();
+            legacyPhotoState = readPhotoControls();
+            switchLayout(false);
             updateAllVals();
-            draw(); 
+            syncV15Controls();
+            renderPointEditors();
+            draw();
         };
 
         function loadImgFromUrl() {
@@ -297,6 +694,9 @@
 
                 img.onload = function() {
                     bgImg = img;
+                    if (document.getElementById('layoutSelector').value === 'news-points') {
+                        resetV15PhotoPosition(false);
+                    }
                     draw();
                     document.getElementById('imgUrl').value = ''; 
                     
@@ -351,14 +751,16 @@
                 bgZoom: document.getElementById('bgZoom').value,
                 bgPanX: document.getElementById('bgPanX').value,
                 bgPanY: document.getElementById('bgPanY').value,
+                bgFilter: document.getElementById('bgFilter').value,
                 showDate: document.getElementById('showDate').checked,
-                textColorMaps: textColorMaps
+                textColorMaps: textColorMaps,
+                v15State: v15State
             };
-            localStorage.setItem('et_chart_v8_3_config', JSON.stringify(config));
+            localStorage.setItem('et_chart_v15_config', JSON.stringify(config));
         }
 
         function loadConfig() {
-            const saved = localStorage.getItem('et_chart_v8_3_config');
+            const saved = localStorage.getItem('et_chart_v15_config');
             if (saved) {
                 try {
                     const config = JSON.parse(saved);
@@ -373,8 +775,10 @@
                     document.getElementById('bgZoom').value = config.bgZoom || 100;
                     document.getElementById('bgPanX').value = config.bgPanX || 50;
                     document.getElementById('bgPanY').value = config.bgPanY || 50;
+                    document.getElementById('bgFilter').value = config.bgFilter || 'none';
                     if (typeof config.showDate === 'boolean') document.getElementById('showDate').checked = config.showDate;
                     if(config.tagColor) currentTagColor = config.tagColor;
+                    v15State = normalizeV15State(config.v15State);
                     if (config.textColorMaps) {
                         colorableTextIds.forEach(id => {
                             if (Array.isArray(config.textColorMaps[id])) {
@@ -384,7 +788,7 @@
                     }
                 } catch (error) {
                     console.warn('無法讀取已儲存的設定，改用預設值。', error);
-                    localStorage.removeItem('et_chart_v8_3_config');
+                    localStorage.removeItem('et_chart_v15_config');
                 }
             }
             colorableTextIds.forEach(id => {
@@ -395,8 +799,8 @@
         }
 
         function resetConfig() {
-            if(confirm('確定要重置所有文字和設定嗎？')) {
-                localStorage.removeItem('et_chart_v8_3_config');
+            if(confirm('確定要重設所有文字、照片位置與設定嗎？')) {
+                localStorage.removeItem('et_chart_v15_config');
                 location.reload();
             }
         }
@@ -444,7 +848,21 @@
                 return;
             }
 
-            const { id, start, end } = activeTextSelection;
+            const { id, pointId, start, end } = activeTextSelection;
+            if (pointId) {
+                const point = v15State.points.find(item => item.id === pointId);
+                if (!point) return;
+                for (let index = start; index < end; index++) point.colors[index] = color;
+                draw();
+                saveConfig();
+                const pointField = document.getElementById(`v15-point-${pointId}`);
+                if (pointField) {
+                    pointField.focus();
+                    pointField.setSelectionRange(start, end);
+                }
+                return;
+            }
+
             for (let index = start; index < end; index++) {
                 textColorMaps[id][index] = color;
             }
@@ -506,15 +924,85 @@
                 var reader = new FileReader();
                 reader.onload = function (e) {
                     var img = new Image();
-                    img.onload = function() { bgImg = img; draw(); }
+                    img.onload = function() {
+                        bgImg = img;
+                        if (document.getElementById('layoutSelector').value === 'news-points') {
+                            resetV15PhotoPosition(false);
+                        }
+                        draw();
+                    }
                     img.src = e.target.result;
                 }
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
+        function getCanvasPoint(event) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (event.clientX - rect.left) * canvas.width / rect.width,
+                y: (event.clientY - rect.top) * canvas.height / rect.height
+            };
+        }
+
+        function startPhotoDrag(event) {
+            if (document.getElementById('layoutSelector').value !== 'news-points' || !bgImg) return;
+            const point = getCanvasPoint(event);
+            const photo = V15Core.getLayoutRegions(v15State.ratio).photo;
+            if (point.x < photo.x || point.x > photo.x + photo.w || point.y < photo.y || point.y > photo.y + photo.h) return;
+            photoDragState = { pointerId: event.pointerId, x: point.x, y: point.y };
+            canvas.setPointerCapture(event.pointerId);
+            canvas.style.cursor = 'grabbing';
+        }
+
+        function movePhotoDrag(event) {
+            if (!photoDragState || event.pointerId !== photoDragState.pointerId) return;
+            const point = getCanvasPoint(event);
+            const photo = V15Core.getLayoutRegions(v15State.ratio).photo;
+            const deltaX = point.x - photoDragState.x;
+            const deltaY = point.y - photoDragState.y;
+            v15State.photo.panX = Math.min(1, Math.max(0, v15State.photo.panX - deltaX / photo.w));
+            v15State.photo.panY = Math.min(1, Math.max(0, v15State.photo.panY - deltaY / photo.h));
+            photoDragState.x = point.x;
+            photoDragState.y = point.y;
+            applyPhotoControls(v15State.photo);
+            draw();
+            saveConfig();
+        }
+
+        function endPhotoDrag(event) {
+            if (!photoDragState || event.pointerId !== photoDragState.pointerId) return;
+            photoDragState = null;
+            canvas.style.cursor = 'grab';
+        }
+
+        function resetV15PhotoPosition(shouldSave = true) {
+            v15State.photo.zoom = 1;
+            v15State.photo.panX = 0.5;
+            v15State.photo.panY = 0.5;
+            if (document.getElementById('layoutSelector').value === 'news-points') applyPhotoControls(v15State.photo);
+            draw();
+            if (shouldSave) saveConfig();
+        }
+
+        canvas.addEventListener('pointerdown', startPhotoDrag);
+        canvas.addEventListener('pointermove', movePhotoDrag);
+        canvas.addEventListener('pointerup', endPhotoDrag);
+        canvas.addEventListener('pointercancel', endPhotoDrag);
+
         function switchLayout(resetValues = true) {
             const layout = document.getElementById('layoutSelector').value;
+            if (activeLayout === 'news-points') {
+                v15State.photo = readPhotoControls();
+            } else {
+                legacyPhotoState = readPhotoControls();
+            }
+            if (layout === 'news-points') {
+                applyPhotoControls(v15State.photo);
+            } else if (activeLayout === 'news-points') {
+                applyPhotoControls(legacyPhotoState);
+            }
+            activeLayout = layout;
             document.querySelectorAll('.input-group').forEach(el => el.classList.remove('active'));
             if(document.getElementById('group-' + layout)) {
                 document.getElementById('group-' + layout).classList.add('active');
@@ -522,11 +1010,15 @@
             if (resetValues) {
                 if(layout === 'magazine') {
                     document.getElementById('titleSize').value = 90;
-                } else {
+                } else if (layout === 'glass') {
                     document.getElementById('titleSize').value = 64;
+                } else {
+                    document.getElementById('titleSize').value = 72;
                 }
                 updateAllVals();
             }
+            canvas.style.cursor = layout === 'news-points' ? 'grab' : 'default';
+            saveConfig();
             draw();
         }
 
@@ -534,15 +1026,33 @@
             ctx.fillStyle = "#222";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             const layout = document.getElementById('layoutSelector').value;
-            
+
+            if (layout === 'news-points') {
+                v15RenderResult = drawNewsPoints();
+                updateV15Validation(v15RenderResult);
+                return;
+            }
+
+            document.getElementById('downloadButton').disabled = false;
+            document.getElementById('copyButton').disabled = false;
+
             drawFullBg();
 
             if (layout === 'magazine') drawMagazine();
             else if (layout === 'glass') drawGlass();
 
-            drawLogo();
             drawSource();
-            drawDate(); 
+            drawDate();
+            drawV15LogoLayer();
+        }
+
+        function updateV15Validation(result) {
+            const element = document.getElementById('v15Validation');
+            if (!element) return;
+            element.classList.toggle('invalid', !result.valid);
+            element.innerText = result.valid ? '目前內容可以輸出。' : result.reasons.join(' ');
+            document.getElementById('downloadButton').disabled = !result.valid;
+            document.getElementById('copyButton').disabled = !result.valid;
         }
 
         function drawFullBg() {
@@ -571,6 +1081,237 @@
                 ctx.fillText("請上傳背景圖片", canvas.width/2, canvas.height/2);
             }
             ctx.filter = 'none';
+        }
+
+        function applyCanvasImageFilter(filter) {
+            ctx.filter = 'none';
+            if (filter === 'grayscale') ctx.filter = 'grayscale(100%)';
+            if (filter === 'brightness') ctx.filter = 'brightness(120%)';
+            if (filter === 'darken') ctx.filter = 'brightness(70%)';
+            if (filter === 'contrast') ctx.filter = 'contrast(130%)';
+        }
+
+        function getWrappedLines(context, text, maxWidth) {
+            const lines = [];
+            let line = [];
+            let lineWidth = 0;
+            const value = String(text || '');
+
+            for (let index = 0; index < value.length; index++) {
+                const character = value[index];
+                if (character === '\n') {
+                    lines.push(line);
+                    line = [];
+                    lineWidth = 0;
+                    continue;
+                }
+                const width = context.measureText(character).width;
+                if (line.length && lineWidth + width > maxWidth) {
+                    lines.push(line);
+                    line = [];
+                    lineWidth = 0;
+                }
+                line.push({ character, index, width });
+                lineWidth += width;
+            }
+            lines.push(line);
+            return lines;
+        }
+
+        function measureWrappedText(context, text, maxWidth, lineHeight) {
+            const lines = getWrappedLines(context, text, maxWidth);
+            return { lines, height: Math.max(1, lines.length) * lineHeight };
+        }
+
+        function drawColoredWrappedText(context, text, colorMap, x, y, maxWidth, lineHeight) {
+            const defaultColor = context.fillStyle;
+            const lines = getWrappedLines(context, text, maxWidth);
+            lines.forEach((characters, lineIndex) => {
+                let cursorX = x;
+                let segment = '';
+                let segmentColor = null;
+
+                function flush() {
+                    if (!segment) return;
+                    context.fillStyle = segmentColor || defaultColor;
+                    context.fillText(segment, cursorX, y + lineIndex * lineHeight);
+                    cursorX += context.measureText(segment).width;
+                    segment = '';
+                }
+
+                characters.forEach(item => {
+                    const characterColor = colorMap && colorMap[item.index] ? colorMap[item.index] : null;
+                    if (segment && characterColor !== segmentColor) flush();
+                    segmentColor = characterColor;
+                    segment += item.character;
+                });
+                flush();
+            });
+            context.fillStyle = defaultColor;
+            return y + Math.max(1, lines.length) * lineHeight;
+        }
+
+        function drawV15LogoLayer() {
+            if (!v15State.showLogo) return;
+
+            const logoWidth = 180;
+            const logoHeight = 64;
+            const logoX = canvas.width - logoWidth - 50;
+            const logoY = V15_HEADER_TOP;
+
+            if (v15State.logoMode === 'capsule') {
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                roundRect(ctx, logoX, logoY, logoWidth, logoHeight, 32);
+                ctx.fill();
+                ctx.fillStyle = C_WHITE;
+                ctx.font = "bold 34px Arial, 'Microsoft JhengHei', sans-serif";
+                ctx.textAlign = 'center';
+                ctx.fillText('ETtoday', logoX + logoWidth / 2, logoY + 43);
+                return;
+            }
+
+            ctx.save();
+            ctx.fillStyle = 'rgba(255,255,255,0.92)';
+            roundRect(ctx, logoX, logoY, logoWidth, logoHeight, 10);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(0,0,0,0.14)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            if (companyLogoImg.complete && companyLogoImg.naturalWidth) {
+                const imageWidth = 152;
+                const imageHeight = imageWidth * companyLogoImg.naturalHeight / companyLogoImg.naturalWidth;
+                ctx.drawImage(
+                    companyLogoImg,
+                    logoX + (logoWidth - imageWidth) / 2,
+                    logoY + (logoHeight - imageHeight) / 2,
+                    imageWidth,
+                    imageHeight
+                );
+            } else {
+                ctx.fillStyle = '#1A1A1D';
+                ctx.font = "bold 30px Arial, 'Microsoft JhengHei', sans-serif";
+                ctx.textAlign = 'center';
+                ctx.fillText('ETtoday', logoX + logoWidth / 2, logoY + 42);
+            }
+            ctx.restore();
+        }
+
+        function drawV15TitleBand(regions, dark, textColor, title, titleSize, left, textWidth) {
+            const titleBandTop = regions.text.y;
+            const compactText = v15State.ratio === 55;
+            const defaultTitleBandPaddingTop = 54;
+            const titleBandPaddingTop = compactText ? 20 : defaultTitleBandPaddingTop;
+            const titleBandPaddingBottom = compactText ? 12 : 28;
+            const titleToPointsGap = compactText ? 55 : 64;
+            const titleLineHeight = titleSize * 1.18;
+
+            ctx.font = `900 ${titleSize}px ${FONT_FAMILY}`;
+            const titleMeasure = measureWrappedText(ctx, title, textWidth, titleLineHeight);
+            const titleBandHeight = titleBandPaddingTop + titleMeasure.lines.length * titleLineHeight + titleBandPaddingBottom;
+
+            ctx.fillStyle = currentTagColor;
+            ctx.fillRect(0, titleBandTop, canvas.width, 12);
+
+            ctx.textAlign = 'left';
+            ctx.fillStyle = textColor;
+            ctx.font = `900 ${titleSize}px ${FONT_FAMILY}`;
+            const titleBaseline = titleBandTop + titleBandPaddingTop + titleSize;
+            drawColoredWrappedText(ctx, title, textColorMaps.mainTitle, left, titleBaseline, textWidth, titleLineHeight);
+
+            return {
+                cursorY: titleBandTop + titleBandHeight + titleToPointsGap,
+                titleMeasure
+            };
+        }
+
+        function drawNewsPoints() {
+            const regions = V15Core.getLayoutRegions(v15State.ratio);
+            const filter = v15State.photo.filter;
+            const zoom = v15State.photo.zoom;
+            const panX = v15State.photo.panX;
+            const panY = v15State.photo.panY;
+            const reasons = [];
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(regions.photo.x, regions.photo.y, regions.photo.w, regions.photo.h);
+            ctx.clip();
+            applyCanvasImageFilter(filter);
+            if (bgImg) {
+                drawImageProp(ctx, bgImg, regions.photo.x, regions.photo.y, regions.photo.w, regions.photo.h, panX, panY, zoom);
+            } else {
+                ctx.filter = 'none';
+                ctx.fillStyle = '#26313a';
+                ctx.fillRect(regions.photo.x, regions.photo.y, regions.photo.w, regions.photo.h);
+                ctx.fillStyle = '#aeb9c1';
+                ctx.font = `bold 48px ${FONT_FAMILY}`;
+                ctx.textAlign = 'center';
+                ctx.fillText('請上傳新聞照片', canvas.width / 2, regions.photo.h / 2);
+                reasons.push('尚未載入照片。');
+            }
+            ctx.restore();
+            ctx.filter = 'none';
+
+            drawTag(50, V15_HEADER_TOP, document.getElementById('tagText').value);
+
+            const dark = v15State.theme === 'dark';
+            const textColor = dark ? '#F5F5F5' : '#202124';
+            ctx.fillStyle = dark ? '#17191D' : '#F4F0E8';
+            ctx.fillRect(regions.text.x, regions.text.y, regions.text.w, regions.text.h);
+
+            const left = 70;
+            const textWidth = 940;
+            const titleSize = parseInt(document.getElementById('titleSize').value);
+            const title = document.getElementById('mainTitle').value;
+            const titleBand = drawV15TitleBand(regions, dark, textColor, title, titleSize, left, textWidth);
+            let cursorY = titleBand.cursorY;
+            if (titleBand.titleMeasure.lines.length > 3) reasons.push('主標題行數過多。');
+
+            const pointSize = v15State.pointSize;
+            const pointGap = v15State.ratio === 55 ? 6 : 20;
+            v15State.points.forEach((point, index) => {
+                const pointTextSize = pointSize + 2;
+                const pointLineHeight = pointTextSize * 1.35;
+                const markerCenterY = cursorY - pointTextSize * 0.32;
+
+                ctx.fillStyle = currentTagColor;
+                ctx.beginPath();
+                ctx.arc(96, markerCenterY, 26, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = C_WHITE;
+                ctx.font = `900 27px ${FONT_FAMILY}`;
+                ctx.textAlign = 'center';
+                ctx.fillText(String(index + 1), 96, markerCenterY + 10);
+
+                ctx.textAlign = 'left';
+                ctx.fillStyle = textColor;
+                ctx.font = `900 ${pointTextSize}px ${FONT_FAMILY}`;
+                cursorY = drawColoredWrappedText(ctx, point.text, point.colors, 150, cursorY, 860, pointLineHeight);
+                cursorY += pointGap;
+            });
+
+            const contentBottom = cursorY;
+            const safeBottom = 1260;
+            if (contentBottom > safeBottom) reasons.push('文字超出安全範圍，請精簡內容或調整比例。');
+
+            ctx.textAlign = 'left';
+            ctx.fillStyle = dark ? 'rgba(255,255,255,0.68)' : 'rgba(0,0,0,0.58)';
+            ctx.font = `bold 26px ${FONT_FAMILY}`;
+            const source = document.getElementById('sourceText').value;
+            if (source) ctx.fillText(source, 50, 1310);
+
+            if (document.getElementById('showDate').checked) {
+                const today = new Date();
+                const date = today.getFullYear() + '.' +
+                    (today.getMonth() + 1).toString().padStart(2, '0') + '.' +
+                    today.getDate().toString().padStart(2, '0');
+                ctx.textAlign = 'right';
+                ctx.fillText(date, canvas.width - 50, 1310);
+            }
+
+            drawV15LogoLayer();
+            return { valid: reasons.length === 0, reasons, contentBottom, safeBottom };
         }
 
         function drawMagazine() {
@@ -663,22 +1404,6 @@
             ctx.fillStyle = "white";
             ctx.textAlign = "center";
             ctx.fillText(text, x + w/2, y + h/2 + fontSize/3);
-        }
-
-        function drawLogo() {
-            const w = 180; 
-            const h = 64;
-            const x = canvas.width - w - 50;
-            const y = 80;
-            
-            ctx.fillStyle = "rgba(0,0,0,0.6)";
-            roundRect(ctx, x, y, w, h, 32);
-            ctx.fill();
-            
-            ctx.fillStyle = "white";
-            ctx.font = "bold 34px Arial, 'Microsoft JhengHei', sans-serif"; 
-            ctx.textAlign = "center";
-            ctx.fillText("ETtoday", x + w/2, y + 43);
         }
 
         function drawSource() {
@@ -810,6 +1535,9 @@
         }
 
         function downloadImage() {
+            if (document.getElementById('layoutSelector').value === 'news-points') {
+                if (!v15RenderResult.valid) return;
+            }
             try {
                 var link = document.createElement('a');
                 link.download = getSafeFilename();
@@ -822,6 +1550,9 @@
         }
         
         async function copyImage() {
+            if (document.getElementById('layoutSelector').value === 'news-points') {
+                if (!v15RenderResult.valid) return;
+            }
             try {
                 const blob = await new Promise(resolve => canvas.toBlob(resolve));
                 if (!blob) throw new Error('CORS tainted');
