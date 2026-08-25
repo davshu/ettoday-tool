@@ -238,6 +238,93 @@
         </div>
     </div>
 
+    <script id="v15-core">
+        (function(global) {
+            function createPoint(id, text, colors) {
+                const value = String(text || '');
+                const colorMap = Array.isArray(colors) ? colors.slice(0, value.length) : [];
+                while (colorMap.length < value.length) colorMap.push(null);
+                return { id: String(id), text: value, colors: colorMap };
+            }
+
+            function syncColorMap(oldText, newText, colors) {
+                const previous = String(oldText || '');
+                const next = String(newText || '');
+                const nextColors = Array.isArray(colors) ? colors.slice(0, previous.length) : [];
+                while (nextColors.length < previous.length) nextColors.push(null);
+
+                let prefixLength = 0;
+                while (
+                    prefixLength < previous.length &&
+                    prefixLength < next.length &&
+                    previous[prefixLength] === next[prefixLength]
+                ) {
+                    prefixLength++;
+                }
+
+                let suffixLength = 0;
+                while (
+                    suffixLength < previous.length - prefixLength &&
+                    suffixLength < next.length - prefixLength &&
+                    previous[previous.length - 1 - suffixLength] === next[next.length - 1 - suffixLength]
+                ) {
+                    suffixLength++;
+                }
+
+                const removedLength = previous.length - prefixLength - suffixLength;
+                const insertedLength = next.length - prefixLength - suffixLength;
+                nextColors.splice(prefixLength, removedLength, ...Array(insertedLength).fill(null));
+                nextColors.length = next.length;
+                return nextColors;
+            }
+
+            function movePoint(points, id, direction) {
+                const result = points.map(point => createPoint(point.id, point.text, point.colors));
+                const index = result.findIndex(point => point.id === id);
+                const target = index + Number(direction);
+                if (index < 0 || target < 0 || target >= result.length) return result;
+                const [point] = result.splice(index, 1);
+                result.splice(target, 0, point);
+                return result;
+            }
+
+            function removePoint(points, id) {
+                return points
+                    .filter(point => point.id !== id)
+                    .map(point => createPoint(point.id, point.text, point.colors));
+            }
+
+            function getLayoutRegions(ratio) {
+                const safeRatio = [35, 45, 55].includes(Number(ratio)) ? Number(ratio) : 45;
+                const photoHeight = Math.round(1350 * safeRatio / 100);
+                return {
+                    photo: { x: 0, y: 0, w: 1080, h: photoHeight },
+                    text: { x: 0, y: photoHeight, w: 1080, h: 1350 - photoHeight }
+                };
+            }
+
+            function getSafeBaseName(title, now) {
+                const date = now instanceof Date ? now : new Date();
+                const stamp = date.getFullYear() +
+                    (date.getMonth() + 1).toString().padStart(2, '0') +
+                    date.getDate().toString().padStart(2, '0') + '_' +
+                    date.getHours().toString().padStart(2, '0') +
+                    date.getMinutes().toString().padStart(2, '0');
+                const safeTitle = String(title || '').trim().replace(/[\\/:*?"<>|]/g, '') || 'ettoday_chart';
+                return `${stamp}_${safeTitle}`;
+            }
+
+            global.V15Core = Object.freeze({
+                createPoint,
+                syncColorMap,
+                movePoint,
+                removePoint,
+                getLayoutRegions,
+                getSafeBaseName
+            });
+        })(globalThis);
+    </script>
+
     <script>
         const canvas = document.getElementById('myCanvas');
         const ctx = canvas.getContext('2d');
