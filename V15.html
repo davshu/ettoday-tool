@@ -278,6 +278,11 @@
                     <input type="checkbox" id="v15ShowLogo" checked onchange="setV15ShowLogo(this.checked)">
                     顯示公司 Logo（沿用 V14 尺寸）
                 </label>
+                <label>Logo 樣式</label>
+                <div id="v15LogoMode" class="segmented-control two" role="group" aria-label="Logo 樣式">
+                    <button type="button" class="segment-btn active" data-logo-mode="company" onclick="setV15LogoMode('company')">公司 Logo</button>
+                    <button type="button" class="segment-btn" data-logo-mode="capsule" onclick="setV15LogoMode('capsule')">V14 文字膠囊</button>
+                </div>
                 <button type="button" class="action-btn" onclick="resetV15PhotoPosition()">重設照片位置</button>
                 <p id="v15Validation" class="v15-validation" aria-live="polite">請先載入照片。</p>
             </div>
@@ -397,6 +402,9 @@
         const C_WHITE = "#FFFFFF";
         const C_BLACK = "#000000";
         const FONT_FAMILY = "'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', sans-serif";
+        const companyLogoImg = new Image();
+        companyLogoImg.src = 'assets/ettoday-logo-v15.png';
+        companyLogoImg.addEventListener('load', () => draw());
         
         let bgImg = null;
         let currentTagColor = "#F58220";
@@ -420,6 +428,7 @@
                 theme: 'light',
                 pointSize: 40,
                 showLogo: true,
+                logoMode: 'company',
                 photo: { zoom: 1, panX: 0.5, panY: 0.5, filter: 'none' },
                 points: [
                     V15Core.createPoint('point-1', '審查時程｜本週進入逐案表決'),
@@ -449,6 +458,7 @@
                 theme,
                 pointSize,
                 showLogo: raw.showLogo !== false,
+                logoMode: ['company', 'capsule'].includes(raw.logoMode) ? raw.logoMode : 'company',
                 photo: {
                     zoom: Math.min(3, Math.max(1, Number(photo.zoom) || 1)),
                     panX: Math.min(1, Math.max(0, Number.isFinite(Number(photo.panX)) ? Number(photo.panX) : 0.5)),
@@ -469,6 +479,10 @@
             document.getElementById('v15PointSize').value = v15State.pointSize;
             document.getElementById('v_v15PointSize').innerText = v15State.pointSize;
             document.getElementById('v15ShowLogo').checked = v15State.showLogo;
+            document.querySelectorAll('#v15LogoMode [data-logo-mode]').forEach(button => {
+                button.classList.toggle('active', button.dataset.logoMode === v15State.logoMode);
+                button.disabled = !v15State.showLogo;
+            });
         }
 
         function readPhotoControls() {
@@ -610,6 +624,14 @@
 
         function setV15ShowLogo(show) {
             v15State.showLogo = Boolean(show);
+            syncV15Controls();
+            draw();
+            saveConfig();
+        }
+
+        function setV15LogoMode(mode) {
+            v15State.logoMode = mode === 'capsule' ? 'capsule' : 'company';
+            syncV15Controls();
             draw();
             saveConfig();
         }
@@ -1116,6 +1138,85 @@
             return y + Math.max(1, lines.length) * lineHeight;
         }
 
+        function drawV15LogoLayer() {
+            if (!v15State.showLogo) return;
+
+            const logoWidth = 180;
+            const logoHeight = 64;
+            const logoX = canvas.width - logoWidth - 50;
+            const logoY = 80;
+
+            if (v15State.logoMode === 'capsule') {
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                roundRect(ctx, logoX, logoY, logoWidth, logoHeight, 32);
+                ctx.fill();
+                ctx.fillStyle = C_WHITE;
+                ctx.font = "bold 34px Arial, 'Microsoft JhengHei', sans-serif";
+                ctx.textAlign = 'center';
+                ctx.fillText('ETtoday', logoX + logoWidth / 2, logoY + 43);
+                return;
+            }
+
+            ctx.save();
+            ctx.fillStyle = 'rgba(255,255,255,0.92)';
+            roundRect(ctx, logoX, logoY, logoWidth, logoHeight, 10);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(0,0,0,0.14)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            if (companyLogoImg.complete && companyLogoImg.naturalWidth) {
+                const imageWidth = 152;
+                const imageHeight = imageWidth * companyLogoImg.naturalHeight / companyLogoImg.naturalWidth;
+                ctx.drawImage(
+                    companyLogoImg,
+                    logoX + (logoWidth - imageWidth) / 2,
+                    logoY + (logoHeight - imageHeight) / 2,
+                    imageWidth,
+                    imageHeight
+                );
+            } else {
+                ctx.fillStyle = '#1A1A1D';
+                ctx.font = "bold 30px Arial, 'Microsoft JhengHei', sans-serif";
+                ctx.textAlign = 'center';
+                ctx.fillText('ETtoday', logoX + logoWidth / 2, logoY + 42);
+            }
+            ctx.restore();
+        }
+
+        function drawV15TitleBand(regions, dark, textColor, title, titleSize, left, textWidth) {
+            const titleBandTop = regions.text.y;
+            const compactText = v15State.ratio === 55;
+            const defaultTitleBandPaddingTop = 54;
+            const titleBandPaddingTop = compactText ? 32 : defaultTitleBandPaddingTop;
+            const titleBandPaddingBottom = compactText ? 18 : 28;
+            const titleToPointsGap = compactText ? 20 : 32;
+            const titleLineHeight = titleSize * 1.18;
+
+            ctx.font = `900 ${titleSize}px ${FONT_FAMILY}`;
+            const titleMeasure = measureWrappedText(ctx, title, textWidth, titleLineHeight);
+            const titleBandHeight = titleBandPaddingTop + titleMeasure.lines.length * titleLineHeight + titleBandPaddingBottom;
+
+            ctx.fillStyle = dark ? '#22252A' : '#FFFFFF';
+            ctx.fillRect(0, titleBandTop, canvas.width, titleBandHeight);
+            ctx.fillStyle = currentTagColor;
+            ctx.fillRect(0, titleBandTop, canvas.width, 12);
+
+            ctx.textAlign = 'left';
+            ctx.fillStyle = textColor;
+            ctx.font = `900 ${titleSize}px ${FONT_FAMILY}`;
+            const titleBaseline = titleBandTop + titleBandPaddingTop + titleSize;
+            drawColoredWrappedText(ctx, title, textColorMaps.mainTitle, left, titleBaseline, textWidth, titleLineHeight);
+
+            ctx.fillStyle = dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)';
+            ctx.fillRect(0, titleBandTop + titleBandHeight - 2, canvas.width, 2);
+
+            return {
+                cursorY: titleBandTop + titleBandHeight + titleToPointsGap,
+                titleMeasure
+            };
+        }
+
         function drawNewsPoints() {
             const regions = V15Core.getLayoutRegions(v15State.ratio);
             const filter = v15State.photo.filter;
@@ -1146,20 +1247,6 @@
 
             drawTag(50, 50, document.getElementById('tagText').value);
 
-            if (v15State.showLogo) {
-                const logoWidth = 180;
-                const logoHeight = 64;
-                const logoX = canvas.width - logoWidth - 50;
-                const logoY = 80;
-                ctx.fillStyle = 'rgba(0,0,0,0.6)';
-                roundRect(ctx, logoX, logoY, logoWidth, logoHeight, 32);
-                ctx.fill();
-                ctx.fillStyle = C_WHITE;
-                ctx.font = "bold 34px Arial, 'Microsoft JhengHei', sans-serif";
-                ctx.textAlign = 'center';
-                ctx.fillText('ETtoday', logoX + logoWidth / 2, logoY + 43);
-            }
-
             const dark = v15State.theme === 'dark';
             const textColor = dark ? '#F5F5F5' : '#202124';
             const bodyColor = dark ? '#D8DADD' : '#424448';
@@ -1169,19 +1256,13 @@
             const left = 70;
             const textWidth = 940;
             const titleSize = parseInt(document.getElementById('titleSize').value);
-            const titleLineHeight = titleSize * 1.18;
-            let cursorY = regions.text.y + 64;
-
-            ctx.textAlign = 'left';
-            ctx.fillStyle = textColor;
-            ctx.font = `900 ${titleSize}px ${FONT_FAMILY}`;
             const title = document.getElementById('mainTitle').value;
-            const titleMeasure = measureWrappedText(ctx, title, textWidth, titleLineHeight);
-            cursorY = drawColoredWrappedText(ctx, title, textColorMaps.mainTitle, left, cursorY, textWidth, titleLineHeight);
-            if (titleMeasure.lines.length > 3) reasons.push('主標題行數過多。');
-            cursorY += 28;
+            const titleBand = drawV15TitleBand(regions, dark, textColor, title, titleSize, left, textWidth);
+            let cursorY = titleBand.cursorY;
+            if (titleBand.titleMeasure.lines.length > 3) reasons.push('主標題行數過多。');
 
             const pointSize = v15State.pointSize;
+            const pointGap = v15State.ratio === 55 ? 12 : 20;
             v15State.points.forEach((point, index) => {
                 const separator = point.text.indexOf('｜');
                 const pointTitle = separator >= 0 ? point.text.slice(0, separator) : point.text;
@@ -1210,7 +1291,7 @@
                     const copyLineHeight = Math.max(24, pointSize - 6) * 1.35;
                     cursorY = drawColoredWrappedText(ctx, pointCopy, copyColors, 150, cursorY + 5, 860, copyLineHeight);
                 }
-                cursorY += 20;
+                cursorY += pointGap;
             });
 
             const contentBottom = cursorY;
@@ -1232,6 +1313,7 @@
                 ctx.fillText(date, canvas.width - 50, 1310);
             }
 
+            drawV15LogoLayer();
             return { valid: reasons.length === 0, reasons, contentBottom, safeBottom };
         }
 

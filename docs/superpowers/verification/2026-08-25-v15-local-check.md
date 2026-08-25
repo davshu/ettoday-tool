@@ -40,3 +40,15 @@ Date: 2026-08-25
 ## Environment Note
 
 The sandbox blocked the external Google Fonts request during one headless mobile run. The page used its existing Microsoft JhengHei/PingFang TC fallback stack; there were no page script errors.
+
+## Logo And Title Revision
+
+- Company Logo and V14 text capsule are selectable from the V15 editor.
+- The selected Logo mode persists after reload; Company Logo is the default.
+- Both Logo styles use the V14 180 x 64 placement at the top-right and render after all other canvas layers.
+- The title is separated from the photo by a full-width title band and a 12 px orange rule.
+- Default three-point content remains exportable at every ratio:
+  - 55/45 content bottom: 1252 px.
+  - 45/55 content bottom: 1185 px.
+  - 35/65 content bottom: 1050 px.
+- Mobile recheck at 390 px: no horizontal overflow, Company Logo control active, canvas output valid.
