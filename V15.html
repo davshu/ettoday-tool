@@ -53,6 +53,7 @@
         .action-row { display: flex; gap: 10px; margin-top: 30px; }
         .btn-main { flex: 2; background: linear-gradient(135deg, #F58220, #d96a0b); color: white; border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(245, 130, 32, 0.3); transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-main:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-main:disabled, .btn-copy:disabled { transform: none; box-shadow: none; opacity: 0.45; cursor: not-allowed; }
         .btn-copy { flex: 1; background: #00AA55; color: white; border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 170, 85, 0.3); transition: 0.2s; display: flex; align-items: center; justify-content: center; }
         .btn-copy:hover { transform: translateY(-2px); background: #00bb5d; }
         .action-btn { background: #444; border: 1px solid #666; font-size: 14px; padding: 10px; margin-top: 10px; width: 100%; cursor: pointer; color: #ddd; border-radius: 6px; }
@@ -290,8 +291,8 @@
             <input type="text" id="sourceText" value="資料來源：ETtoday 採訪團隊" oninput="draw()">
             
             <div class="action-row">
-                <button class="btn-main" onclick="downloadImage()">📥 下載圖卡</button>
-                <button class="btn-copy" onclick="copyImage()" title="複製到剪貼簿">📋 複製</button>
+                <button id="downloadButton" class="btn-main" onclick="downloadImage()">📥 下載圖卡</button>
+                <button id="copyButton" class="btn-copy" onclick="copyImage()" title="複製到剪貼簿">📋 複製</button>
             </div>
             
             <button class="action-btn" onclick="resetConfig()">↺ 重置所有設定</button>
@@ -875,7 +876,16 @@
             ctx.fillStyle = "#222";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             const layout = document.getElementById('layoutSelector').value;
-            
+
+            if (layout === 'news-points') {
+                v15RenderResult = drawNewsPoints();
+                updateV15Validation(v15RenderResult);
+                return;
+            }
+
+            document.getElementById('downloadButton').disabled = false;
+            document.getElementById('copyButton').disabled = false;
+
             drawFullBg();
 
             if (layout === 'magazine') drawMagazine();
@@ -884,6 +894,15 @@
             drawLogo();
             drawSource();
             drawDate(); 
+        }
+
+        function updateV15Validation(result) {
+            const element = document.getElementById('v15Validation');
+            if (!element) return;
+            element.classList.toggle('invalid', !result.valid);
+            element.innerText = result.valid ? '目前內容可以輸出。' : result.reasons.join(' ');
+            document.getElementById('downloadButton').disabled = !result.valid;
+            document.getElementById('copyButton').disabled = !result.valid;
         }
 
         function drawFullBg() {
@@ -912,6 +931,193 @@
                 ctx.fillText("請上傳背景圖片", canvas.width/2, canvas.height/2);
             }
             ctx.filter = 'none';
+        }
+
+        function applyCanvasImageFilter(filter) {
+            ctx.filter = 'none';
+            if (filter === 'grayscale') ctx.filter = 'grayscale(100%)';
+            if (filter === 'brightness') ctx.filter = 'brightness(120%)';
+            if (filter === 'darken') ctx.filter = 'brightness(70%)';
+            if (filter === 'contrast') ctx.filter = 'contrast(130%)';
+        }
+
+        function getWrappedLines(context, text, maxWidth) {
+            const lines = [];
+            let line = [];
+            let lineWidth = 0;
+            const value = String(text || '');
+
+            for (let index = 0; index < value.length; index++) {
+                const character = value[index];
+                if (character === '\n') {
+                    lines.push(line);
+                    line = [];
+                    lineWidth = 0;
+                    continue;
+                }
+                const width = context.measureText(character).width;
+                if (line.length && lineWidth + width > maxWidth) {
+                    lines.push(line);
+                    line = [];
+                    lineWidth = 0;
+                }
+                line.push({ character, index, width });
+                lineWidth += width;
+            }
+            lines.push(line);
+            return lines;
+        }
+
+        function measureWrappedText(context, text, maxWidth, lineHeight) {
+            const lines = getWrappedLines(context, text, maxWidth);
+            return { lines, height: Math.max(1, lines.length) * lineHeight };
+        }
+
+        function drawColoredWrappedText(context, text, colorMap, x, y, maxWidth, lineHeight) {
+            const defaultColor = context.fillStyle;
+            const lines = getWrappedLines(context, text, maxWidth);
+            lines.forEach((characters, lineIndex) => {
+                let cursorX = x;
+                let segment = '';
+                let segmentColor = null;
+
+                function flush() {
+                    if (!segment) return;
+                    context.fillStyle = segmentColor || defaultColor;
+                    context.fillText(segment, cursorX, y + lineIndex * lineHeight);
+                    cursorX += context.measureText(segment).width;
+                    segment = '';
+                }
+
+                characters.forEach(item => {
+                    const characterColor = colorMap && colorMap[item.index] ? colorMap[item.index] : null;
+                    if (segment && characterColor !== segmentColor) flush();
+                    segmentColor = characterColor;
+                    segment += item.character;
+                });
+                flush();
+            });
+            context.fillStyle = defaultColor;
+            return y + Math.max(1, lines.length) * lineHeight;
+        }
+
+        function drawNewsPoints() {
+            const regions = V15Core.getLayoutRegions(v15State.ratio);
+            const filter = document.getElementById('bgFilter').value;
+            const zoom = document.getElementById('bgZoom').value / 100;
+            const panX = document.getElementById('bgPanX').value / 100;
+            const panY = document.getElementById('bgPanY').value / 100;
+            const reasons = [];
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(regions.photo.x, regions.photo.y, regions.photo.w, regions.photo.h);
+            ctx.clip();
+            applyCanvasImageFilter(filter);
+            if (bgImg) {
+                drawImageProp(ctx, bgImg, regions.photo.x, regions.photo.y, regions.photo.w, regions.photo.h, panX, panY, zoom);
+            } else {
+                ctx.filter = 'none';
+                ctx.fillStyle = '#26313a';
+                ctx.fillRect(regions.photo.x, regions.photo.y, regions.photo.w, regions.photo.h);
+                ctx.fillStyle = '#aeb9c1';
+                ctx.font = `bold 48px ${FONT_FAMILY}`;
+                ctx.textAlign = 'center';
+                ctx.fillText('請上傳新聞照片', canvas.width / 2, regions.photo.h / 2);
+                reasons.push('尚未載入照片。');
+            }
+            ctx.restore();
+            ctx.filter = 'none';
+
+            drawTag(50, 50, document.getElementById('tagText').value);
+
+            if (v15State.showLogo) {
+                const logoWidth = 180;
+                const logoHeight = 64;
+                const logoX = canvas.width - logoWidth - 50;
+                const logoY = 80;
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                roundRect(ctx, logoX, logoY, logoWidth, logoHeight, 32);
+                ctx.fill();
+                ctx.fillStyle = C_WHITE;
+                ctx.font = "bold 34px Arial, 'Microsoft JhengHei', sans-serif";
+                ctx.textAlign = 'center';
+                ctx.fillText('ETtoday', logoX + logoWidth / 2, logoY + 43);
+            }
+
+            const dark = v15State.theme === 'dark';
+            const textColor = dark ? '#F5F5F5' : '#202124';
+            const bodyColor = dark ? '#D8DADD' : '#424448';
+            ctx.fillStyle = dark ? '#17191D' : '#F4F0E8';
+            ctx.fillRect(regions.text.x, regions.text.y, regions.text.w, regions.text.h);
+
+            const left = 70;
+            const textWidth = 940;
+            const titleSize = parseInt(document.getElementById('titleSize').value);
+            const titleLineHeight = titleSize * 1.18;
+            let cursorY = regions.text.y + 64;
+
+            ctx.textAlign = 'left';
+            ctx.fillStyle = textColor;
+            ctx.font = `900 ${titleSize}px ${FONT_FAMILY}`;
+            const title = document.getElementById('mainTitle').value;
+            const titleMeasure = measureWrappedText(ctx, title, textWidth, titleLineHeight);
+            cursorY = drawColoredWrappedText(ctx, title, textColorMaps.mainTitle, left, cursorY, textWidth, titleLineHeight);
+            if (titleMeasure.lines.length > 3) reasons.push('主標題行數過多。');
+            cursorY += 28;
+
+            const pointSize = v15State.pointSize;
+            v15State.points.forEach((point, index) => {
+                const separator = point.text.indexOf('｜');
+                const pointTitle = separator >= 0 ? point.text.slice(0, separator) : point.text;
+                const pointCopy = separator >= 0 ? point.text.slice(separator + 1) : '';
+                const titleColors = point.colors.slice(0, separator >= 0 ? separator : point.text.length);
+                const copyColors = separator >= 0 ? point.colors.slice(separator + 1) : [];
+
+                ctx.fillStyle = currentTagColor;
+                ctx.beginPath();
+                ctx.arc(96, cursorY + 17, 28, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = C_WHITE;
+                ctx.font = `900 30px ${FONT_FAMILY}`;
+                ctx.textAlign = 'center';
+                ctx.fillText(String(index + 1), 96, cursorY + 28);
+
+                ctx.textAlign = 'left';
+                ctx.fillStyle = textColor;
+                ctx.font = `900 ${pointSize + 4}px ${FONT_FAMILY}`;
+                const pointTitleLineHeight = (pointSize + 4) * 1.25;
+                cursorY = drawColoredWrappedText(ctx, pointTitle, titleColors, 150, cursorY, 860, pointTitleLineHeight);
+
+                if (pointCopy) {
+                    ctx.fillStyle = bodyColor;
+                    ctx.font = `bold ${Math.max(24, pointSize - 6)}px ${FONT_FAMILY}`;
+                    const copyLineHeight = Math.max(24, pointSize - 6) * 1.35;
+                    cursorY = drawColoredWrappedText(ctx, pointCopy, copyColors, 150, cursorY + 5, 860, copyLineHeight);
+                }
+                cursorY += 20;
+            });
+
+            const contentBottom = cursorY;
+            const safeBottom = 1260;
+            if (contentBottom > safeBottom) reasons.push('文字超出安全範圍，請精簡內容或調整比例。');
+
+            ctx.textAlign = 'left';
+            ctx.fillStyle = dark ? 'rgba(255,255,255,0.68)' : 'rgba(0,0,0,0.58)';
+            ctx.font = `bold 26px ${FONT_FAMILY}`;
+            const source = document.getElementById('sourceText').value;
+            if (source) ctx.fillText(source, 50, 1310);
+
+            if (document.getElementById('showDate').checked) {
+                const today = new Date();
+                const date = today.getFullYear() + '.' +
+                    (today.getMonth() + 1).toString().padStart(2, '0') + '.' +
+                    today.getDate().toString().padStart(2, '0');
+                ctx.textAlign = 'right';
+                ctx.fillText(date, canvas.width - 50, 1310);
+            }
+
+            return { valid: reasons.length === 0, reasons, contentBottom, safeBottom };
         }
 
         function drawMagazine() {
