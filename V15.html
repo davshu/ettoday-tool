@@ -77,6 +77,23 @@
         .section-header { color: #F58220; font-size: 14px; margin-top: 20px; margin-bottom: 5px; border-left: 3px solid #F58220; padding-left: 8px; font-weight: bold; }
         .checkbox-label { display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: normal; margin-top: 10px; justify-content: flex-start; }
         input[type="checkbox"] { width: 20px; height: 20px; accent-color: #F58220; margin: 0; }
+        .segmented-control { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+        .segmented-control.two { grid-template-columns: repeat(2, 1fr); }
+        .segment-btn { padding: 10px 6px; border: 1px solid #666; background: #444; color: #eee; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .segment-btn.active { border-color: #F58220; background: #F58220; color: #1f1f1f; }
+        .v15-points-editor { display: grid; gap: 8px; margin-top: 10px; }
+        .v15-point-row { display: grid; grid-template-columns: minmax(0, 1fr) repeat(3, 38px); gap: 6px; align-items: center; }
+        .v15-point-row input { min-width: 0; margin: 0; }
+        .icon-btn { width: 38px; height: 38px; padding: 0; border: 1px solid #666; border-radius: 6px; background: #444; color: #eee; cursor: pointer; }
+        .icon-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .v15-validation { margin: 10px 0 0; padding: 10px; border-left: 3px solid #00AA55; background: #292929; color: #bde8cd; font-size: 13px; }
+        .v15-validation.invalid { border-color: #E72D48; color: #ffb6c2; }
+        .v15-color-hint { margin: 6px 0 0; color: #888; font-size: 12px; }
+
+        @media (max-width: 500px) {
+            .v15-point-row { grid-template-columns: minmax(0, 1fr) repeat(3, 42px); }
+            .segment-btn { min-height: 44px; }
+        }
     </style>
 </head>
 <body>
@@ -91,6 +108,7 @@
             <select id="layoutSelector" onchange="switchLayout()">
                 <option value="magazine">版型 1：雜誌封面風</option>
                 <option value="glass">版型 2：懸浮玻璃卡片</option>
+                <option value="news-points">版型 3：新聞三點整理</option>
             </select>
 
             <div class="section-header">背景處理</div>
@@ -214,6 +232,52 @@
                     <input type="range" id="g_SubSize" min="24" max="60" step="2" value="40" oninput="updateVal('g_SubSize'); draw()">
                     <span class="slider-icon">A+</span>
                 </div>
+            </div>
+
+            <div id="group-news-points" class="input-group">
+                <div class="section-header">新版型比例</div>
+                <div id="v15Ratio" class="segmented-control" role="group" aria-label="照片與文字比例">
+                    <button type="button" class="segment-btn" data-ratio="55" onclick="setV15Ratio(55)">照片多<br>55 / 45</button>
+                    <button type="button" class="segment-btn active" data-ratio="45" onclick="setV15Ratio(45)">平衡<br>45 / 55</button>
+                    <button type="button" class="segment-btn" data-ratio="35" onclick="setV15Ratio(35)">文字多<br>35 / 65</button>
+                </div>
+
+                <label>文字區底色</label>
+                <div id="v15Theme" class="segmented-control two" role="group" aria-label="文字區底色">
+                    <button type="button" class="segment-btn active" data-theme="light" onclick="setV15Theme('light')">明亮</button>
+                    <button type="button" class="segment-btn" data-theme="dark" onclick="setV15Theme('dark')">黑暗</button>
+                </div>
+
+                <label>重點字體大小 <span id="v_v15PointSize" class="val-display">40</span></label>
+                <div class="slider-group">
+                    <span class="slider-icon">A-</span>
+                    <input type="range" id="v15PointSize" min="28" max="54" step="2" value="40" oninput="setV15PointSize(this.value)">
+                    <span class="slider-icon">A+</span>
+                </div>
+
+                <div class="section-header">重點文字</div>
+                <div id="v15PointsEditor" class="v15-points-editor"></div>
+                <button type="button" id="v15AddPoint" class="action-btn" onclick="addV15Point()">＋ 新增重點</button>
+
+                <label>局部文字顏色</label>
+                <div class="text-color-tools" aria-label="新版型局部文字顏色">
+                    <button type="button" class="text-color-swatch" style="background:#FC8416" aria-label="ET 橘" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#FC8416')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#E72D48" aria-label="快訊紅" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#E72D48')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#FAC03D" aria-label="重點黃" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#FAC03D')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#91CFD5" aria-label="資訊藍" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#91CFD5')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#66D3C0" aria-label="生活青" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#66D3C0')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#91C53A" aria-label="健康綠" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#91C53A')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#E6397C" aria-label="娛樂粉" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#E6397C')"></button>
+                    <button type="button" class="text-color-swatch" style="background:#B56CFF" aria-label="焦點紫" onmousedown="event.preventDefault()" onclick="applySelectedTextColor('#B56CFF')"></button>
+                    <button type="button" class="text-color-clear" aria-label="清除顏色" onmousedown="event.preventDefault()" onclick="applySelectedTextColor(null)">×</button>
+                </div>
+                <p class="v15-color-hint">反白選取主標題或任一重點文字後套用。</p>
+
+                <label class="checkbox-label">
+                    <input type="checkbox" id="v15ShowLogo" checked onchange="setV15ShowLogo(this.checked)">
+                    顯示公司 Logo（沿用 V14 尺寸）
+                </label>
+                <p id="v15Validation" class="v15-validation" aria-live="polite">請先載入照片。</p>
             </div>
 
             <div class="section-header">其他 (資料來源)</div>
@@ -341,6 +405,178 @@
             m_Sub: document.getElementById('m_Sub').value
         };
         let activeTextSelection = null;
+        let v15PointSequence = 4;
+        let v15State = createDefaultV15State();
+        let v15RenderResult = { valid: false, reasons: ['請先載入照片。'], contentBottom: 0, safeBottom: 0 };
+
+        function createDefaultV15State() {
+            return {
+                ratio: 45,
+                theme: 'light',
+                pointSize: 40,
+                showLogo: true,
+                photo: { zoom: 1, panX: 0.5, panY: 0.5, filter: 'none' },
+                points: [
+                    V15Core.createPoint('point-1', '審查時程｜本週進入逐案表決'),
+                    V15Core.createPoint('point-2', '攻防焦點｜預算刪減與凍結比例'),
+                    V15Core.createPoint('point-3', '後續影響｜民生與建設項目受關注')
+                ]
+            };
+        }
+
+        function normalizeV15State(raw) {
+            const defaults = createDefaultV15State();
+            if (!raw || typeof raw !== 'object') return defaults;
+            const ratio = [35, 45, 55].includes(Number(raw.ratio)) ? Number(raw.ratio) : 45;
+            const theme = ['light', 'dark'].includes(raw.theme) ? raw.theme : 'light';
+            const pointSize = Math.min(54, Math.max(28, Number(raw.pointSize) || 40));
+            const photo = raw.photo && typeof raw.photo === 'object' ? raw.photo : {};
+            const usedIds = new Set();
+            const points = Array.isArray(raw.points) ? raw.points.map((point, index) => {
+                let id = point && typeof point.id === 'string' ? point.id : `point-${index + 1}`;
+                if (usedIds.has(id)) id = `point-restored-${index + 1}`;
+                usedIds.add(id);
+                return V15Core.createPoint(id, point && point.text, point && point.colors);
+            }).filter(point => point.text || point.colors.length) : defaults.points;
+
+            return {
+                ratio,
+                theme,
+                pointSize,
+                showLogo: raw.showLogo !== false,
+                photo: {
+                    zoom: Math.min(3, Math.max(1, Number(photo.zoom) || 1)),
+                    panX: Math.min(1, Math.max(0, Number(photo.panX) || 0.5)),
+                    panY: Math.min(1, Math.max(0, Number(photo.panY) || 0.5)),
+                    filter: ['none', 'grayscale', 'brightness', 'darken', 'contrast'].includes(photo.filter) ? photo.filter : 'none'
+                },
+                points: points.length ? points : defaults.points
+            };
+        }
+
+        function syncV15Controls() {
+            document.querySelectorAll('#v15Ratio [data-ratio]').forEach(button => {
+                button.classList.toggle('active', Number(button.dataset.ratio) === v15State.ratio);
+            });
+            document.querySelectorAll('#v15Theme [data-theme]').forEach(button => {
+                button.classList.toggle('active', button.dataset.theme === v15State.theme);
+            });
+            document.getElementById('v15PointSize').value = v15State.pointSize;
+            document.getElementById('v_v15PointSize').innerText = v15State.pointSize;
+            document.getElementById('v15ShowLogo').checked = v15State.showLogo;
+        }
+
+        function rememberV15PointSelection(pointId, field) {
+            activeTextSelection = {
+                pointId,
+                start: field.selectionStart || 0,
+                end: field.selectionEnd || 0
+            };
+        }
+
+        function renderPointEditors() {
+            const container = document.getElementById('v15PointsEditor');
+            if (!container) return;
+            container.replaceChildren();
+            v15State.points.forEach((point, index) => {
+                const row = document.createElement('div');
+                row.className = 'v15-point-row';
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = `v15-point-${point.id}`;
+                input.value = point.text;
+                input.placeholder = '重點標題｜補充說明';
+                input.setAttribute('aria-label', `第 ${index + 1} 點文字`);
+                ['focus', 'select', 'keyup', 'mouseup'].forEach(eventName => {
+                    input.addEventListener(eventName, () => rememberV15PointSelection(point.id, input));
+                });
+                input.addEventListener('input', () => {
+                    point.colors = V15Core.syncColorMap(point.text, input.value, point.colors);
+                    point.text = input.value;
+                    rememberV15PointSelection(point.id, input);
+                    draw();
+                    saveConfig();
+                });
+
+                const up = document.createElement('button');
+                up.type = 'button';
+                up.className = 'icon-btn';
+                up.textContent = '↑';
+                up.disabled = index === 0;
+                up.setAttribute('aria-label', `上移第 ${index + 1} 點`);
+                up.addEventListener('click', () => moveV15Point(point.id, -1));
+
+                const down = document.createElement('button');
+                down.type = 'button';
+                down.className = 'icon-btn';
+                down.textContent = '↓';
+                down.disabled = index === v15State.points.length - 1;
+                down.setAttribute('aria-label', `下移第 ${index + 1} 點`);
+                down.addEventListener('click', () => moveV15Point(point.id, 1));
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'icon-btn';
+                remove.textContent = '×';
+                remove.setAttribute('aria-label', `刪除第 ${index + 1} 點`);
+                remove.addEventListener('click', () => removeV15Point(point.id));
+
+                row.append(input, up, down, remove);
+                container.append(row);
+            });
+        }
+
+        function addV15Point() {
+            const id = `point-${Date.now()}-${v15PointSequence++}`;
+            v15State.points.push(V15Core.createPoint(id, `新增重點 ${v15State.points.length + 1}｜請輸入說明`));
+            renderPointEditors();
+            draw();
+            saveConfig();
+        }
+
+        function removeV15Point(id) {
+            v15State.points = V15Core.removePoint(v15State.points, id);
+            activeTextSelection = null;
+            renderPointEditors();
+            draw();
+            saveConfig();
+        }
+
+        function moveV15Point(id, direction) {
+            v15State.points = V15Core.movePoint(v15State.points, id, direction);
+            activeTextSelection = null;
+            renderPointEditors();
+            draw();
+            saveConfig();
+        }
+
+        function setV15Ratio(ratio) {
+            v15State.ratio = [35, 45, 55].includes(Number(ratio)) ? Number(ratio) : 45;
+            syncV15Controls();
+            draw();
+            saveConfig();
+        }
+
+        function setV15Theme(theme) {
+            v15State.theme = theme === 'dark' ? 'dark' : 'light';
+            syncV15Controls();
+            draw();
+            saveConfig();
+        }
+
+        function setV15PointSize(size) {
+            v15State.pointSize = Math.min(54, Math.max(28, Number(size) || 40));
+            syncV15Controls();
+            draw();
+            saveConfig();
+        }
+
+        function setV15ShowLogo(show) {
+            v15State.showLogo = Boolean(show);
+            draw();
+            saveConfig();
+        }
 
         document.fonts.ready.then(function() { draw(); });
 
@@ -348,6 +584,8 @@
             loadConfig(); 
             switchLayout(false); 
             updateAllVals();
+            syncV15Controls();
+            renderPointEditors();
             draw(); 
         };
 
@@ -439,7 +677,8 @@
                 bgPanX: document.getElementById('bgPanX').value,
                 bgPanY: document.getElementById('bgPanY').value,
                 showDate: document.getElementById('showDate').checked,
-                textColorMaps: textColorMaps
+                textColorMaps: textColorMaps,
+                v15State: v15State
             };
             localStorage.setItem('et_chart_v15_config', JSON.stringify(config));
         }
@@ -462,6 +701,7 @@
                     document.getElementById('bgPanY').value = config.bgPanY || 50;
                     if (typeof config.showDate === 'boolean') document.getElementById('showDate').checked = config.showDate;
                     if(config.tagColor) currentTagColor = config.tagColor;
+                    v15State = normalizeV15State(config.v15State);
                     if (config.textColorMaps) {
                         colorableTextIds.forEach(id => {
                             if (Array.isArray(config.textColorMaps[id])) {
@@ -531,7 +771,21 @@
                 return;
             }
 
-            const { id, start, end } = activeTextSelection;
+            const { id, pointId, start, end } = activeTextSelection;
+            if (pointId) {
+                const point = v15State.points.find(item => item.id === pointId);
+                if (!point) return;
+                for (let index = start; index < end; index++) point.colors[index] = color;
+                draw();
+                saveConfig();
+                const pointField = document.getElementById(`v15-point-${pointId}`);
+                if (pointField) {
+                    pointField.focus();
+                    pointField.setSelectionRange(start, end);
+                }
+                return;
+            }
+
             for (let index = start; index < end; index++) {
                 textColorMaps[id][index] = color;
             }
