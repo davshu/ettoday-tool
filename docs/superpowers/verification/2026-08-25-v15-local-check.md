@@ -72,3 +72,8 @@ The sandbox blocked the external Google Fonts request during one headless mobile
 - Default content remains exportable at every ratio: 1103, 1069, and 934 px.
 - A long wrapped first point remains exportable with a 1126 px content bottom.
 - Mobile recheck at 390 px: document width remains 390 px with no horizontal overflow.
+
+## Header Alignment Revision
+
+- The News Points category tab and selected top-right Logo share the same 80 px top edge.
+- Browser-rendered Canvas remains exportable after the alignment change.

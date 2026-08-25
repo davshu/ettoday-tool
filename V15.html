@@ -411,6 +411,7 @@
         const C_WHITE = "#FFFFFF";
         const C_BLACK = "#000000";
         const FONT_FAMILY = "'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', sans-serif";
+        const V15_HEADER_TOP = 80;
         const companyLogoImg = new Image();
         companyLogoImg.src = 'assets/ettoday-logo-v15.png';
         companyLogoImg.addEventListener('load', () => draw());
@@ -1156,7 +1157,7 @@
             const logoWidth = 180;
             const logoHeight = 64;
             const logoX = canvas.width - logoWidth - 50;
-            const logoY = 80;
+            const logoY = V15_HEADER_TOP;
 
             if (v15State.logoMode === 'capsule') {
                 ctx.fillStyle = 'rgba(0,0,0,0.6)';
@@ -1252,7 +1253,7 @@
             ctx.restore();
             ctx.filter = 'none';
 
-            drawTag(50, 50, document.getElementById('tagText').value);
+            drawTag(50, V15_HEADER_TOP, document.getElementById('tagText').value);
 
             const dark = v15State.theme === 'dark';
             const textColor = dark ? '#F5F5F5' : '#202124';

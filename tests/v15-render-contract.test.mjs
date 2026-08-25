@@ -14,7 +14,7 @@ test('V15 renderer uses measured overflow and preserves V14 capsule geometry', (
   assert.match(html, /const logoWidth = 180/);
   assert.match(html, /const logoHeight = 64/);
   assert.match(html, /const logoX = canvas\.width - logoWidth - 50/);
-  assert.match(html, /const logoY = 80/);
+  assert.match(html, /const logoY = V15_HEADER_TOP/);
   assert.match(html, /drawV15LogoLayer\(\);\s*return \{ valid:/);
   assert.match(html, /contentBottom > safeBottom/);
 });
@@ -40,6 +40,11 @@ test('logo controls and renderer are shared by every layout', () => {
   assert.ok(newsGroupStart >= 0 && globalLogoStart > newsGroupStart && sourceStart > globalLogoStart);
   assert.doesNotMatch(html.slice(newsGroupStart, globalLogoStart), /id="v15ShowLogo"/);
   assert.match(html, /drawSource\(\);\s*drawDate\(\);\s*drawV15LogoLayer\(\);/);
+});
+
+test('news category tab shares the logo top edge', () => {
+  assert.match(html, /const V15_HEADER_TOP = 80/);
+  assert.match(html, /drawTag\(50, V15_HEADER_TOP, document\.getElementById\('tagText'\)\.value\)/);
 });
 
 test('title and points share one background with whitespace separation', () => {
