@@ -2146,7 +2146,6 @@
             const title = document.getElementById('mainTitle').value;
             const titleBand = drawV15TitleBand(regions, dark, textColor, title, titleSize, left, textWidth);
             let cursorY = titleBand.cursorY;
-            if (titleBand.titleMeasure.lines.length > 3) reasons.push('主標題行數過多。');
 
             const pointSize = v15State.pointSize;
             const pointGap = v15State.ratio === 55 ? 6 : 20;
@@ -2173,7 +2172,6 @@
 
             const contentBottom = cursorY;
             const safeBottom = 1260;
-            if (contentBottom > safeBottom) reasons.push('文字超出安全範圍，請精簡內容或調整比例。');
 
             ctx.textAlign = 'left';
             ctx.fillStyle = dark ? 'rgba(255,255,255,0.68)' : 'rgba(0,0,0,0.58)';
@@ -2229,7 +2227,6 @@
             const sub = document.getElementById('m_Sub').value;
             const safeBottom = 1310 - 26 - 40;
             let contentBottom = titleBottom;
-            let overlapsTitle = false;
             ctx.fillStyle = "#ddd";
             ctx.font = `bold ${contentSize}px ${FONT_FAMILY}`;
             if (sub.trim()) {
@@ -2242,17 +2239,15 @@
                 const subY = Math.min(1220, safeBottom - descent - (lines.length - 1) * lineHeight);
                 const subTop = subY - ascent;
                 contentBottom = subY + (lines.length - 1) * lineHeight + descent;
-                overlapsTitle = subTop < titleBottom + 36;
                 ctx.save();
                 ctx.fillStyle = "#F58220";
                 ctx.fillRect(80, subTop, 12, contentBottom - subTop);
                 ctx.restore();
                 wrapText(ctx, sub, subX, subY, 1000 - subX, lineHeight, textColorMaps.m_Sub);
             }
-            const valid = !overlapsTitle && titleBottom <= safeBottom;
             return {
-                valid,
-                reasons: valid ? [] : ['主標或引言超出可用區域，請精簡文字或調整字級。'],
+                valid: true,
+                reasons: [],
                 contentBottom,
                 safeBottom
             };

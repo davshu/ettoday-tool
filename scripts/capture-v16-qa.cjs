@@ -56,16 +56,15 @@ const url = process.env.V16_QA_URL || 'http://127.0.0.1:8765/index.html';
   if (!(await page.evaluate(() => v15RenderResult.valid && v15RenderResult.contentBottom <= v15RenderResult.safeBottom))) {
     throw new Error('Magazine intro exceeds the source safe area.');
   }
-  await page.locator('#m_Sub').fill(Array(8).fill('測試引言過長必須禁止輸出').join('\n'));
-  if (!(await page.locator('#downloadButton').isDisabled())) throw new Error('Overflow did not block download.');
-  if (!(await page.locator('#copyButton').isDisabled())) throw new Error('Overflow did not block clipboard output.');
-  if (!(await page.locator('#v15Validation').textContent()).includes('精簡')) throw new Error('Overflow guidance is missing.');
+  await page.locator('#m_Sub').fill(Array(8).fill('測試引言過長仍可輸出').join('\n'));
+  if (await page.locator('#downloadButton').isDisabled()) throw new Error('Long intro blocks download.');
+  if (await page.locator('#copyButton').isDisabled()) throw new Error('Long intro blocks clipboard output.');
   await page.locator('#m_Sub').fill(originalIntro);
   if (await page.locator('#downloadButton').isDisabled()) throw new Error('Restoring intro did not restore export.');
   await page.locator('#mainTitle').fill('測試主標過長'.repeat(10));
   await page.locator('#titleSize').fill('120');
   await page.locator('#titleSize').dispatchEvent('input');
-  if (!(await page.locator('#downloadButton').isDisabled())) throw new Error('Long title did not block export.');
+  if (await page.locator('#downloadButton').isDisabled()) throw new Error('Long title blocks export.');
   await page.locator('#mainTitle').fill(originalTitle);
   await page.locator('#titleSize').fill(originalTitleSize);
   await page.locator('#titleSize').dispatchEvent('input');
