@@ -400,7 +400,7 @@
         .reference-settings .field-label { font-size: 13px; margin-top: 10px; }
         .reference-settings .slider-group { margin: 0; }
         .reference-settings .segment-btn { min-height: 32px; padding: 5px; }
-        .reference-settings .source-shortcuts { display: none; }
+        .reference-settings .source-shortcuts { display: flex; }
         .reference-settings #sourceText { font-size: 14px; }
         .sticky-actions { position: fixed; left: 0; bottom: 0; width: 39.45%; padding: 7px 21px 5px; background: #1c2124; border-color: #383f43; backdrop-filter: none; }
         .v15-validation { margin: 0 0 3px; font-size: 10px; line-height: 12px; }
@@ -503,6 +503,9 @@
         body[data-layout="news-points"] .reference-compact-settings .slider-icon { flex-basis: 18px; }
         body[data-layout="news-points"] .reference-compact-settings .field-label { margin: 0; }
         body[data-layout="news-points"] .reference-compact-settings .field-label .val-display { display: none; }
+        body[data-layout="news-points"] .compact-source { flex-wrap: wrap; }
+        body[data-layout="news-points"] .compact-source #sourceText { flex: 1; }
+        body[data-layout="news-points"] .compact-source .source-shortcuts { flex: 0 0 100%; margin: 0; }
         body[data-layout="news-points"] .compact-colors { flex-wrap: nowrap; gap: 3px !important; }
         body[data-layout="news-points"] .compact-colors > select { flex: 0 0 82px; }
         body[data-layout="news-points"] .compact-colors .palette-row { display: contents; }
@@ -1367,6 +1370,7 @@
             dock(titleSlider.previousElementSibling, compact.querySelector('.compact-font'));
             dock(titleSlider, compact.querySelector('.compact-font'));
             dock(document.getElementById('sourceText'), compact.querySelector('.compact-source'));
+            dock(settings.querySelector('.source-shortcuts'), compact.querySelector('.compact-source'));
             compact.querySelector('#referenceRatioSelect').addEventListener('change', event => setV15Ratio(Number(event.target.value)));
             compact.querySelector('#referenceColorSelect').addEventListener('change', event => setV16ColorTarget(event.target.value));
             compact.querySelector('#referenceLogoSelect').addEventListener('change', event => setV16LogoChoice(event.target.value));
