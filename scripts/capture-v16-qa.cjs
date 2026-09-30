@@ -71,10 +71,11 @@ const url = process.env.V16_QA_URL || 'http://127.0.0.1:8765/index.html';
   await page.locator('#titleSize').dispatchEvent('input');
   await page.locator('.layout-card[data-layout="news-points"]').click();
 
-  await page.getByRole('button', { name: '照片靠左', exact: true }).click();
+  await page.locator('#bgPanX').fill('0');
+  await page.locator('#bgPanX').dispatchEvent('input');
   const panX = await page.locator('#bgPanX').inputValue();
   if (panX !== '0') throw new Error('Left photo alignment did not update the crop.');
-  await page.locator('.reference-quick-position').getByRole('button', { name: '重設照片位置', exact: true }).click();
+  await page.getByRole('button', { name: '重設照片位置', exact: true }).click();
   if ((await page.locator('#bgPanX').inputValue()) !== '50') throw new Error('Photo reset failed.');
   await page.getByText('圖片網址（URL）', { exact: true }).click();
   if (!(await page.locator('#imgUrl').isVisible())) throw new Error('URL entry is unavailable.');
