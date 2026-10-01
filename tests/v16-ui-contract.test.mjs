@@ -56,7 +56,7 @@ test('magazine-only extra palettes contain four bright and three representative 
   for (const color of ['#38BDF8', '#34D399', '#FF6B6B', '#A78BFA', '#005BAC', '#009A44', '#28C8C8']) {
     assert.ok(extra.includes(color), `missing magazine color ${color}`);
   }
-  assert.match(html, /body\[data-layout="magazine"\] \.magazine-extra-palette/);
+  assert.match(html, /body:not\(\[data-layout="magazine"\]\) #v16PaletteSwatches \[data-magazine-color\]/);
   assert.match(html, /ctx\.fillStyle = currentTagColor;\s*ctx\.fillRect\(80, subTop, 12, contentBottom - subTop\)/);
 });
 

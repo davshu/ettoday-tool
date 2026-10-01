@@ -14,10 +14,10 @@ const colors = ['#38BDF8', '#34D399', '#FF6B6B', '#A78BFA', '#005BAC', '#009A44'
     await page.goto(process.env.V16_QA_URL || 'http://127.0.0.1:8765/index.html', { waitUntil: 'networkidle' });
     await page.locator('.photo-meta.visible').waitFor();
     await page.evaluate(() => document.fonts.ready);
-    const extra = page.locator('.magazine-extra-palette');
+    const extra = page.locator('#v16PaletteSwatches');
     assert.ok(await extra.isVisible(), 'Magazine extra palette is missing.');
-    assert.equal(await extra.locator('.palette-swatch').count(), 7);
-    assert.ok((await extra.locator('button').allTextContents()).every(text => !text.trim()));
+    assert.equal(await extra.locator('[data-magazine-color]').count(), 7);
+    assert.ok((await extra.locator('[data-magazine-color]').allTextContents()).every(text => !text.trim()));
     const pixels = () => page.locator('#myCanvas').evaluate(canvas => {
       const ctx = canvas.getContext('2d');
       return [[96, 860], [86, 1235]].map(([x, y]) => Array.from(ctx.getImageData(x, y, 1, 1).data).slice(0, 3));
@@ -45,7 +45,9 @@ const colors = ['#38BDF8', '#34D399', '#FF6B6B', '#A78BFA', '#005BAC', '#009A44'
     assert.deepEqual(await page.evaluate(() => textColorMaps.m_Sub.slice(0, 2)), ['#FF6B6B', '#FF6B6B']);
     for (const layout of ['glass', 'news-points']) {
       await page.locator(`.layout-card[data-layout="${layout}"]`).click();
-      assert.equal(await extra.isVisible(), false, `Extra colors leaked into ${layout}.`);
+      for (const button of await extra.locator('[data-magazine-color]').all()) {
+        assert.equal(await button.isVisible(), false, `Extra colors leaked into ${layout}.`);
+      }
     }
     await page.locator('.layout-card[data-layout="magazine"]').click();
     await page.locator('[data-color-target="tag"]').click();
