@@ -50,6 +50,16 @@ test('V16 preserves existing image workflows and saves separately from V15', () 
   assert.doesNotMatch(html, /et_chart_v15_config/);
 });
 
+test('magazine-only extra palettes contain four bright and three representative party colors', () => {
+  const extra = html.match(/<div class="magazine-extra-palette">[\s\S]*?(?=\n\s*<p class="subsection-title">右上 Logo)/)?.[0] || '';
+  assert.equal((extra.match(/class="palette-swatch"/g) || []).length, 7);
+  for (const color of ['#38BDF8', '#34D399', '#FF6B6B', '#A78BFA', '#005BAC', '#009A44', '#28C8C8']) {
+    assert.ok(extra.includes(color), `missing magazine color ${color}`);
+  }
+  assert.match(html, /body\[data-layout="magazine"\] \.magazine-extra-palette/);
+  assert.match(html, /ctx\.fillStyle = currentTagColor;\s*ctx\.fillRect\(80, subTop, 12, contentBottom - subTop\)/);
+});
+
 test('glass editor remains a title, card title, and description form', () => {
   const group = html.match(/<div id="group-glass"[\s\S]*?(?=<div id="group-news-points")/)?.[0] || '';
   assert.match(group, /id="g_Title"/);

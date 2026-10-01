@@ -385,6 +385,11 @@
         .palette-main > .subsection-title { margin: 9px 0 5px; font-size: 15px; }
         .palette-main > .palette-row { justify-content: space-between; flex-wrap: nowrap; gap: 6px; min-height: 30px; }
         .palette-main > .palette-row .palette-swatch { flex: 0 0 24px; width: 24px; height: 24px; border-width: 1px; }
+        .magazine-extra-palette { display: none; }
+        body[data-layout="magazine"] .magazine-extra-palette { display: block; }
+        .magazine-extra-palette > .subsection-title { margin: 10px 0 6px; font-size: 15px; }
+        .magazine-extra-palette .palette-row { justify-content: flex-start; flex-wrap: wrap; gap: 12px; }
+        .magazine-extra-palette .palette-swatch { flex: 0 0 32px; width: 32px; height: 32px; }
         .palette-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 7px; }
         .palette-toolbar .subsection-title { margin: 0; font-size: 13px; }
         .palette-targets { width: 175px; margin: 0; gap: 4px; }
@@ -783,6 +788,21 @@
                     <button type="button" id="v16ColorClear" class="palette-swatch palette-clear" title="清除局部文字顏色" aria-label="清除局部文字顏色" onmousedown="event.preventDefault()" onclick="applyV16PaletteColor(null)">×</button>
                 </div>
                 <p class="v15-color-hint">局部文字請先反白選取；色彩名稱與色碼可將滑鼠停在色塊上查看。</p>
+                <div class="magazine-extra-palette">
+                    <p class="subsection-title">雜誌延伸色</p>
+                    <div class="palette-row" aria-label="雜誌延伸色">
+                        <button type="button" class="palette-swatch" style="background:#38BDF8" title="亮藍 · #38BDF8" aria-label="亮藍 · #38BDF8" onmousedown="event.preventDefault()" onclick="applyV16PaletteColor('#38BDF8')"></button>
+                        <button type="button" class="palette-swatch" style="background:#34D399" title="薄荷綠 · #34D399" aria-label="薄荷綠 · #34D399" onmousedown="event.preventDefault()" onclick="applyV16PaletteColor('#34D399')"></button>
+                        <button type="button" class="palette-swatch" style="background:#FF6B6B" title="珊瑚紅 · #FF6B6B" aria-label="珊瑚紅 · #FF6B6B" onmousedown="event.preventDefault()" onclick="applyV16PaletteColor('#FF6B6B')"></button>
+                        <button type="button" class="palette-swatch" style="background:#A78BFA" title="淡紫 · #A78BFA" aria-label="淡紫 · #A78BFA" onmousedown="event.preventDefault()" onclick="applyV16PaletteColor('#A78BFA')"></button>
+                    </div>
+                    <p class="subsection-title">政黨代表色</p>
+                    <div class="palette-row" aria-label="政黨代表色">
+                        <button type="button" class="palette-swatch" style="background:#005BAC" title="國民黨藍（示意） · #005BAC" aria-label="國民黨藍（示意） · #005BAC" onmousedown="event.preventDefault()" onclick="applyV16PaletteColor('#005BAC')"></button>
+                        <button type="button" class="palette-swatch" style="background:#009A44" title="民進黨綠（示意） · #009A44" aria-label="民進黨綠（示意） · #009A44" onmousedown="event.preventDefault()" onclick="applyV16PaletteColor('#009A44')"></button>
+                        <button type="button" class="palette-swatch" style="background:#28C8C8" title="民眾黨青（示意） · #28C8C8" aria-label="民眾黨青（示意） · #28C8C8" onmousedown="event.preventDefault()" onclick="applyV16PaletteColor('#28C8C8')"></button>
+                    </div>
+                </div>
 
                 <p class="subsection-title">右上 Logo</p>
                 <input type="checkbox" id="v15ShowLogo" class="visually-hidden" checked tabindex="-1" aria-hidden="true">
@@ -1331,7 +1351,7 @@
             const newsLabel = newsRow.previousElementSibling;
             targetLabel.remove();
             brandLabel.append(target);
-            palette.append(brand, newsLabel, newsRow);
+            palette.append(brand, newsLabel, newsRow, style.querySelector('.magazine-extra-palette'));
             const settings = document.createElement('div');
             settings.className = 'reference-settings';
             Array.from(style.children).filter(element => !element.classList.contains('section-title')).forEach(element => settings.append(element));
@@ -2240,7 +2260,7 @@
                 const subTop = subY - ascent;
                 contentBottom = subY + (lines.length - 1) * lineHeight + descent;
                 ctx.save();
-                ctx.fillStyle = "#F58220";
+                ctx.fillStyle = currentTagColor;
                 ctx.fillRect(80, subTop, 12, contentBottom - subTop);
                 ctx.restore();
                 wrapText(ctx, sub, subX, subY, 1000 - subX, lineHeight, textColorMaps.m_Sub);
