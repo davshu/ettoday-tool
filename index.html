@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ETtoday 圖卡神器 V16</title>
+    <title>ETtoday 圖卡神器 V17</title>
 
     <link rel="icon" href="data:,">
 
@@ -312,6 +312,50 @@
             .action-row { grid-template-columns: 1fr 1fr; }
             .btn-main { grid-column: 1 / -1; }
         }
+        .personal-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) repeat(2, 36px); align-items: center; gap: 7px; }
+        #personalSection { margin-top: 10px; padding: 10px 0 2px; border-top: 1px solid var(--border); }
+        #personalSection .field-label { margin: 0; }
+        .personal-style-shortcuts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin-top: 9px; }
+        .personal-style-shortcuts .personal-empty { grid-column: 1 / -1; margin: 0; }
+        .personal-style-button { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 3px 8px; align-content: center; min-height: 58px; padding: 8px 10px; text-align: left; border: 1px solid #505961; border-radius: 5px; background: var(--surface-2); cursor: pointer; }
+        .personal-style-button:hover { border-color: var(--accent); background: var(--surface-3); }
+        .personal-style-swatch { width: 16px; height: 16px; border: 1px solid #ffffff60; border-radius: 3px; margin-top: 2px; }
+        .personal-style-name { min-width: 0; font-size: 14px; line-height: 20px; overflow-wrap: anywhere; }
+        .personal-style-layout { grid-column: 2; color: #b5bdc3; font-size: 12px; line-height: 17px; }
+        .personal-input { display: grid; grid-template-columns: minmax(0, 1fr) 34px 34px; gap: 5px; min-width: 0; width: 100%; }
+        .personal-input input { min-width: 0; }
+        .personal-input .icon-btn, .personal-toolbar .icon-btn { width: 100%; height: 36px; }
+        .personal-shortcuts { display: flex; flex-wrap: wrap; gap: 6px; margin: 7px 0 0; min-width: 0; }
+        .personal-shortcuts:empty { display: none; }
+        .personal-shortcuts .small-btn { flex: 0 1 auto; max-width: 100%; overflow-wrap: anywhere; white-space: normal; text-align: left; }
+        .personal-shortcuts .small-btn.active { border-color: var(--accent); background: #3b3025; }
+        .personal-tag-area { min-width: 0; }
+        body[data-layout="news-points"] .compact-source > .personal-source-area { flex: 1 1 100%; min-width: 0; }
+        body[data-layout="news-points"] .compact-source { grid-column: 1 / -1; }
+        .personal-dialog { width: min(640px, calc(100vw - 28px)); max-height: calc(100dvh - 36px); padding: 20px; color: var(--text); background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; overflow-y: auto; }
+        .personal-dialog::backdrop { background: #0009; }
+        .personal-dialog header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .personal-dialog h2 { font-size: 19px; margin: 0; }
+        .personal-tabs { display: flex; gap: 4px; margin: 16px 0; border-bottom: 1px solid var(--border); }
+        .personal-tabs button { flex: 1; padding: 9px 4px; color: var(--muted); background: none; border: 0; border-bottom: 2px solid transparent; cursor: pointer; }
+        .personal-tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+        .personal-entry { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .personal-entry-tools { display: flex; gap: 4px; }
+        .personal-dialog .icon-btn { width: 34px; height: 34px; }
+        .personal-create { display: grid; grid-template-columns: minmax(0, 1fr) 36px; gap: 8px; margin-bottom: 8px; }
+        .personal-footer { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+        .personal-footer button { display: flex; align-items: center; gap: 6px; }
+        .personal-empty { color: var(--muted); font-size: 14px; margin: 18px 0; }
+        .personal-status { font-size: 13px; color: #bce7d5; overflow-wrap: anywhere; }
+        #personalToast { position: fixed; z-index: 100; bottom: 84px; left: 18px; max-width: min(420px, calc(100vw - 36px)); margin: 0; padding: 10px 14px; background: #263c33; color: #fff; border: 1px solid #598f78; border-radius: 6px; font-size: 14px; overflow-wrap: anywhere; pointer-events: none; }
+        #personalToast:empty { display: none; }
+        button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        .personal-dialog [hidden] { display: none !important; }
+        @media (max-width: 620px) {
+            .personal-dialog { padding: 14px; }
+            .personal-entry { grid-template-columns: minmax(0, 1fr); }
+            .personal-entry-tools { justify-content: flex-end; }
+        }
     </style>
     <style id="v16-reference-ui">
         :root { --surface-0: #171b1d; --surface-1: #1b1f21; --surface-2: #292d2f; --surface-3: #34393c; --border: #343a3d; --accent: #ff8200; }
@@ -449,14 +493,14 @@
         body[data-layout="news-points"] #v15AddPoint { height: 40px; margin-top: 10px; font-size: 16px; }
         body[data-layout="news-points"] #v16-section-photo { display: grid; grid-template-columns: 133px minmax(0, 1fr); column-gap: 15px; margin: 0 30px 5px; padding: 10px 21px; border: 1px solid #3d4448; }
         body[data-layout="news-points"] #v16-section-photo .section-title { grid-column: 1 / -1; }
-        body[data-layout="news-points"] .photo-source-row { grid-column: 2; grid-row: 2; margin: 0; }
+        body[data-layout="news-points"] .photo-source-row { grid-column: 2; grid-row: 1; margin: 0; }
         body[data-layout="news-points"] .photo-source-row label { font-size: 14px; min-height: 38px; }
         body[data-layout="news-points"] .file-upload { color: #fff; background: var(--surface-2); border-color: #505961; }
         body[data-layout="news-points"] input[type="range"] { accent-color: #087bff; }
         .file-upload .lucide, .url-tab-label .lucide { display: none; }
         body[data-layout="glass"] .file-upload .lucide, body[data-layout="glass"] .url-tab-label .lucide,
         body[data-layout="news-points"] .file-upload .lucide, body[data-layout="news-points"] .url-tab-label .lucide { display: block; margin-right: 8px; }
-        body[data-layout="news-points"] .photo-meta { grid-column: 1; grid-row: 2 / 6; align-self: stretch; height: auto; display: block; padding: 0; margin: 0; border: 0; background: transparent; }
+        body[data-layout="news-points"] .photo-meta { grid-column: 1; grid-row: 1 / 5; align-self: stretch; height: auto; display: block; padding: 0; margin: 0; border: 0; background: transparent; }
         body[data-layout="news-points"] .photo-meta img { width: 133px; height: 108px; margin-top: 0; }
         body[data-layout="news-points"] .photo-meta > div, body[data-layout="news-points"] .photo-meta > button { display: none; }
         body[data-layout="news-points"] .photo-control-row { grid-column: 2; grid-template-columns: 70px minmax(0, 1fr) 45px; gap: 7px; margin: 0; min-height: 31px; }
@@ -469,12 +513,12 @@
         body[data-layout="news-points"] #v16-section-style-output { margin: 0 30px 8px; padding: 10px 21px; border: 1px solid #3d4448; }
         body[data-layout="glass"] #v16-section-photo { display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: 10px; }
         body[data-layout="glass"] #v16-section-photo .section-title { grid-column: 1 / -1; }
-        body[data-layout="glass"] .photo-source-row { grid-column: 2; grid-row: 2; margin: 0 10px 6px 0; }
+        body[data-layout="glass"] .photo-source-row { grid-column: 2; grid-row: 1; margin: 0 10px 6px 0; }
         body[data-layout="glass"] .file-upload { color: #fff; background: var(--surface-2); border-color: #505961; }
         body[data-layout="glass"] .photo-meta { display: contents; }
-        body[data-layout="glass"] .photo-meta img { width: 120px; height: 97px; grid-column: 1; grid-row: 2 / 4; }
-        body[data-layout="glass"] .photo-meta > div { grid-column: 2; grid-row: 3; padding-right: 154px; align-self: center; }
-        body[data-layout="glass"] .photo-meta > button { grid-column: 2; grid-row: 3; width: 145px; justify-self: end; margin-right: 10px; align-self: center; }
+        body[data-layout="glass"] .photo-meta img { width: 120px; height: 97px; grid-column: 1; grid-row: 1 / 3; }
+        body[data-layout="glass"] .photo-meta > div { grid-column: 2; grid-row: 2; padding-right: 154px; align-self: center; }
+        body[data-layout="glass"] .photo-meta > button { grid-column: 2; grid-row: 2; width: 145px; justify-self: end; margin-right: 10px; align-self: center; }
         body[data-layout="glass"] .photo-control-row { grid-column: 1 / -1; }
         body[data-layout="glass"] .photo-position-reset { grid-column: 1 / -1; }
         body[data-layout="glass"] .url-group { grid-column: 1 / -1; }
@@ -496,7 +540,7 @@
         body[data-layout="news-points"] .compact-source #sourceText { flex: 1; }
         body[data-layout="news-points"] .compact-source .source-shortcuts { flex: 0 0 100%; margin: 0; }
         body[data-layout="news-points"] .compact-colors { grid-column: 1 / -1; flex-wrap: wrap; gap: 6px !important; }
-        body[data-layout="news-points"] .compact-colors > select { flex: 0 0 82px; }
+        body[data-layout="news-points"] .compact-colors #v16ColorTarget { flex: 0 0 175px; }
         body[data-layout="news-points"] .palette-main { display: none; }
         body[data-layout="news-points"] .reference-settings { padding-top: 10px; margin-top: 12px; border-top: 1px solid #3d4448; }
         body[data-layout="news-points"] .reference-settings > .subsection-title { display: none; }
@@ -571,13 +615,25 @@
             body[data-layout="glass"] .photo-meta > button { grid-column: auto; grid-row: auto; width: 98px; margin: 0; }
             body[data-layout="news-points"] .reference-compact-settings { grid-template-columns: 1fr; }
         }
+        .content-font-row { margin-bottom: 22px; }
+        .content-font-row .slider-group { min-width: 0; margin: 0; }
+        .content-font-row .slider-icon { flex: 0 0 22px; }
+        body[data-layout="news-points"] .content-font-row { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 10px; align-items: center; }
+        .logo-position-settings { min-width: 0; }
+        .logo-position-settings .field-label { margin: 8px 0 6px; }
+        body[data-layout="news-points"] .reference-compact-settings > .logo-position-settings { grid-column: 1 / -1; flex-wrap: wrap; }
+        #logoPositionChoice { width: 100%; }
+        #logoPositionChoice .segment-btn { white-space: normal; }
+        @media (max-width: 620px) {
+            body[data-layout="news-points"] .content-font-row { grid-template-columns: 110px minmax(0, 1fr); gap: 7px; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="editor">
             <header class="workspace-header">
-                <h1 class="workspace-title">ETtoday 神器 V16</h1>
+                <h1 class="workspace-title">ETtoday 神器 V17</h1>
                 <span class="workspace-meta">新聞圖卡 · 1080 × 1350</span>
             </header>
 
@@ -607,6 +663,14 @@
                         <span class="layout-card-name">三點整理</span>
                     </button>
                 </div>
+            <div id="personalSection">
+                <div class="personal-toolbar">
+                    <span class="field-label" id="personalStylesLabel">我的常用樣式</span>
+                    <button type="button" id="personalSaveStyle" class="icon-btn" title="儲存目前樣式" aria-label="儲存目前樣式"><i data-lucide="bookmark-plus"></i></button>
+                    <button type="button" id="personalOpen" class="icon-btn" title="個人設定（本機）" aria-label="個人設定（本機）"><i data-lucide="settings-2"></i></button>
+                </div>
+                <div id="personalStyleShortcuts" class="personal-style-shortcuts" role="group" aria-labelledby="personalStylesLabel"></div>
+            </div>
                 </details>
             </section>
 
@@ -644,8 +708,7 @@
                 <input type="text" id="tagText" value="房產" aria-label="自訂分類文字" oninput="draw()">
             </section>
 
-            <section id="v16-section-photo" class="editor-section">
-                <h2 class="section-title">照片設定</h2>
+            <section id="v16-section-photo" class="editor-section" aria-label="照片設定">
                 <div class="photo-source-row">
                     <label class="file-upload" id="dropZone">
                         上傳圖片
@@ -698,8 +761,7 @@
                 </div>
             </section>
 
-            <section id="v16-section-style-output" class="editor-section">
-                <h2 class="section-title">樣式／品牌／輸出設定</h2>
+            <section id="v16-section-style-output" class="editor-section" aria-label="樣式、品牌與輸出設定">
                 <label class="field-label" for="titleSize">主標字體大小 <span id="v_titleSize" class="val-display">90</span></label>
                 <div class="slider-group">
                     <span class="slider-icon">A−</span>
@@ -753,8 +815,8 @@
 
                 <p class="subsection-title">顏色套用範圍</p>
                 <div id="v16ColorTarget" class="segmented-control two palette-targets" role="group" aria-label="顏色套用範圍">
-                    <button type="button" class="segment-btn active" data-color-target="text" onclick="setV16ColorTarget('text')">局部文字</button>
-                    <button type="button" class="segment-btn" data-color-target="tag" onclick="setV16ColorTarget('tag')">標籤底色</button>
+                    <button type="button" class="segment-btn active" data-color-target="tag" onclick="setV16ColorTarget('tag')">標籤底色</button>
+                    <button type="button" class="segment-btn" data-color-target="text" onclick="setV16ColorTarget('text')">局部文字</button>
                 </div>
                 <p class="subsection-title">東森新媒體品牌延伸色</p>
                 <div class="palette-row" aria-label="東森新媒體品牌延伸色">
@@ -795,12 +857,21 @@
                     </div>
                 </div>
 
-                <p class="subsection-title">右上 Logo</p>
+                <p class="subsection-title">Logo 樣式</p>
                 <input type="checkbox" id="v15ShowLogo" class="visually-hidden" checked tabindex="-1" aria-hidden="true">
-                <div id="v16LogoChoice" class="segmented-control logo-choice" role="group" aria-label="右上 Logo 樣式">
+                <div id="v16LogoChoice" class="segmented-control logo-choice" role="group" aria-label="Logo 樣式">
                     <button type="button" class="segment-btn active" data-logo-choice="company" onclick="setV16LogoChoice('company')">透明 Logo</button>
                     <button type="button" class="segment-btn" data-logo-choice="capsule" onclick="setV16LogoChoice('capsule')">深色膠囊</button>
                     <button type="button" class="segment-btn" data-logo-choice="hidden" onclick="setV16LogoChoice('hidden')">隱藏</button>
+                </div>
+
+                <div id="logoPositionSettings" class="logo-position-settings">
+                    <span class="field-label" id="logoPositionLabel">Logo 位置</span>
+                    <div id="logoPositionChoice" class="segmented-control" role="group" aria-labelledby="logoPositionLabel">
+                        <button type="button" class="segment-btn active" data-logo-position="top-right" aria-pressed="true" onclick="setLogoPosition('top-right')">右上</button>
+                        <button type="button" class="segment-btn" data-logo-position="top-left" aria-pressed="false" onclick="setLogoPosition('top-left')">左上</button>
+                        <button type="button" class="segment-btn" data-logo-position="bottom-center" aria-pressed="false" onclick="setLogoPosition('bottom-center')">下方置中</button>
+                    </div>
                 </div>
 
                 <label class="checkbox-label">
@@ -812,8 +883,7 @@
                 <div class="btn-group source-shortcuts">
                     <button type="button" class="small-btn" onclick="setSourceText('資料來源：ETtoday 採訪團隊')">預設</button>
                     <button type="button" class="small-btn" onclick="setSourceText('資料來源：路透社')">路透社</button>
-                    <button type="button" class="small-btn" onclick="setSourceText('資料來源：達志影像')">達志影像</button>
-                    <button type="button" class="small-btn" onclick="setSourceText('資料來源：美聯社')">美聯社</button>
+                    <button type="button" class="small-btn" onclick="setSourceText('資料來源：達志影像／美聯社')">達志影像／美聯社</button>
                 </div>
                 <input type="text" id="sourceText" value="資料來源：ETtoday 採訪團隊" oninput="draw()">
             </section>
@@ -839,7 +909,91 @@
         </main>
     </div>
 
+    <p id="personalToast" role="status" aria-live="polite"></p>
+    <dialog id="personalDialog" class="personal-dialog" aria-labelledby="personalDialogTitle">
+        <header><h2 id="personalDialogTitle">個人設定（本機）</h2><button type="button" id="personalClose" class="icon-btn" title="關閉" aria-label="關閉"><i data-lucide="x"></i></button></header>
+        <div class="personal-tabs" role="tablist" aria-label="個人設定分類">
+            <button type="button" id="personalTab-tags" role="tab" aria-controls="personalPanel" data-personal-tab="tags">分類</button>
+            <button type="button" id="personalTab-sources" role="tab" aria-controls="personalPanel" data-personal-tab="sources">來源</button>
+            <button type="button" id="personalTab-styles" role="tab" aria-controls="personalPanel" data-personal-tab="styles">樣式</button>
+            <button type="button" id="personalTab-settings" role="tab" aria-controls="personalPanel" data-personal-tab="settings">設定</button>
+        </div>
+        <div id="personalPanel" role="tabpanel">
+            <form id="personalCreateForm" class="personal-create">
+                <input id="personalNewName" aria-label="新增名稱" placeholder="新增名稱" autocomplete="off">
+                <button type="submit" class="icon-btn" title="新增" aria-label="新增"><i data-lucide="plus"></i></button>
+            </form>
+            <div id="personalList"></div>
+            <div id="personalOptions" hidden>
+                <label class="checkbox-label"><input type="checkbox" id="personalRememberDraft">保留文字草稿</label>
+                <div class="personal-footer">
+                    <button type="button" id="personalExport" class="action-btn"><i data-lucide="download"></i>匯出個人設定</button>
+                    <button type="button" id="personalImport" class="action-btn"><i data-lucide="upload"></i>匯入個人設定</button>
+                    <button type="button" id="personalReset" class="action-btn"><i data-lucide="rotate-ccw"></i>重設個人設定</button>
+                    <input type="file" id="personalImportFile" accept=".json,application/json">
+                </div>
+            </div>
+        </div>
+        <p id="personalStatus" class="personal-status" role="status" aria-live="polite"></p>
+    </dialog>
+
     <script src="assets/lucide.min.js"></script>
+    <script id="v17-personal-core">
+        (function(global) {
+            const filters = ['none', 'grayscale', 'brightness', 'darken', 'contrast', 'vivid', 'soft', 'desaturated'];
+            function object(value) { return value && typeof value === 'object' && !Array.isArray(value); }
+            function label(value, max) {
+                if (typeof value !== 'string' || !value.trim() || Array.from(value.trim()).length > max || /[\u0000-\u001f\u007f]/.test(value)) throw new Error('名稱不可空白、過長或含控制字元。');
+                return value.trim();
+            }
+            function style(raw) {
+                if (!object(raw)) throw new Error('樣式格式不正確。');
+                const oneOf = (key, values, fallback) => {
+                    const value = raw[key] === undefined ? fallback : raw[key];
+                    if (!values.includes(value)) throw new Error('樣式選項不正確：' + key);
+                    return value;
+                };
+                const number = (key, min, max, fallback) => {
+                    const value = raw[key] === undefined ? fallback : raw[key];
+                    if (typeof value !== 'number' || !Number.isFinite(value) || value < min || value > max) throw new Error('樣式數值不正確：' + key);
+                    return value;
+                };
+                const tagColor = raw.tagColor === undefined ? '#F58220' : raw.tagColor;
+                if (typeof tagColor !== 'string' || !/^#[a-f0-9]{6}$/i.test(tagColor)) throw new Error('色碼格式不正確。');
+                return {
+                    layout: oneOf('layout', ['magazine', 'glass', 'news-points']),
+                    titleSize: number('titleSize', 40, 140, 90),
+                    subSize: number('subSize', 24, 80, 46),
+                    glassSize: number('glassSize', 24, 60, 40),
+                    overlay: number('overlay', 0, 1, 0.8),
+                    filterStrength: number('filterStrength', 0, 100, 0),
+                    filter: oneOf('filter', filters, 'none'),
+                    ratio: oneOf('ratio', [35, 45, 55], 45),
+                    theme: oneOf('theme', ['light', 'dark'], 'light'),
+                    pointSize: number('pointSize', 28, 54, 40),
+                    logo: oneOf('logo', ['company', 'capsule', 'hidden'], 'company'),
+                    logoPosition: oneOf('logoPosition', ['top-right', 'top-left', 'bottom-center'], 'top-right'),
+                    showDate: oneOf('showDate', [true, false], true),
+                    tagColor
+                };
+            }
+            function validate(raw) {
+                if (!object(raw) || raw.version !== 1 || typeof raw.rememberDraft !== 'boolean') throw new Error('不是支援的 V17 個人設定檔。');
+                const list = (key, maxLength, maxItems) => {
+                    if (!Array.isArray(raw[key]) || raw[key].length > maxItems) throw new Error('個人設定項目過多或格式不正確。');
+                    const seen = new Set();
+                    return raw[key].map(item => {
+                        const name = label(key === 'styles' ? item && item.name : item, maxLength);
+                        if (seen.has(name)) throw new Error('同一類別不可有重複名稱。');
+                        seen.add(name);
+                        return key === 'styles' ? { name, settings: style(item.settings) } : name;
+                    });
+                };
+                return { version: 1, tags: list('tags', 24, 30), sources: list('sources', 120, 30), styles: list('styles', 40, 20), rememberDraft: raw.rememberDraft };
+            }
+            global.V17Personal = { validate, style, label };
+        })(typeof window !== 'undefined' ? window : globalThis);
+    </script>
     <script id="v15-core">
         (function(global) {
             function createPoint(id, text, colors) {
@@ -958,8 +1112,363 @@
         let activeLayout = 'magazine';
         let legacyPhotoState = { zoom: 1, panX: 0.5, panY: 0.5, filter: 'none' };
         let photoDragState = null;
-        let v16ColorTarget = 'text';
+        let v16ColorTarget = 'tag';
         const referenceDockedControls = [];
+        const PERSONAL_KEY = 'et_chart_v17_personal';
+        const DRAFT_KEY = 'et_chart_v17_config';
+        let personalTab = 'tags';
+        let toastTimer;
+        let suppressDemoPhoto = false;
+        let personal = readPersonal();
+        let initialCardDefaults;
+
+        function emptyPersonal() {
+            return { version: 1, tags: [], sources: [], styles: [], rememberDraft: true };
+        }
+
+        function personalNotice(message) {
+            document.getElementById('personalStatus').textContent = message;
+            document.getElementById('personalToast').textContent = message;
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { document.getElementById('personalToast').textContent = ''; }, 6000);
+        }
+
+        function readPersonal() {
+            try {
+                const saved = localStorage.getItem(PERSONAL_KEY);
+                return saved ? V17Personal.validate(JSON.parse(saved)) : emptyPersonal();
+            } catch (error) {
+                personalNotice('無法讀取個人設定，暫用預設值；原儲存資料未刪除。');
+                return emptyPersonal();
+            }
+        }
+
+        function commitPersonal(next) {
+            try {
+                const checked = V17Personal.validate(next);
+                localStorage.setItem(PERSONAL_KEY, JSON.stringify(checked));
+                personal = checked;
+                renderPersonalShortcuts();
+                return true;
+            } catch (error) {
+                personalNotice('未儲存：' + error.message);
+                return false;
+            }
+        }
+
+        function personalButton(icon, title, action) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'icon-btn';
+            button.title = title;
+            button.setAttribute('aria-label', title);
+            button.append(referenceIcon(icon));
+            button.addEventListener('click', action);
+            return button;
+        }
+
+        function renderPersonalShortcuts() {
+            [['tags', 'tagText', setTagText], ['sources', 'sourceText', setSourceText]].forEach(([key, id, apply]) => {
+                const container = document.getElementById('personal-' + key);
+                if (!container) return;
+                container.replaceChildren();
+                personal[key].forEach(value => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'small-btn';
+                    button.textContent = value;
+                    button.title = value;
+                    button.setAttribute('aria-label', '套用' + (key === 'tags' ? '分類：' : '來源：') + value);
+                    button.classList.toggle('active', document.getElementById(id).value === value);
+                    button.setAttribute('aria-pressed', String(document.getElementById(id).value === value));
+                    button.addEventListener('click', () => { apply(value); renderPersonalShortcuts(); });
+                    container.append(button);
+                });
+            });
+            const styles = document.getElementById('personalStyleShortcuts');
+            styles.replaceChildren();
+            if (!personal.styles.length) {
+                const empty = document.createElement('p');
+                empty.className = 'personal-empty';
+                empty.textContent = '尚未儲存樣式';
+                styles.append(empty);
+            }
+            personal.styles.forEach((item, index) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'personal-style-button';
+                button.setAttribute('aria-label', '套用樣式：' + item.name);
+                button.title = '套用樣式：' + item.name;
+                const swatch = document.createElement('span');
+                swatch.className = 'personal-style-swatch';
+                swatch.style.backgroundColor = item.settings.tagColor;
+                swatch.setAttribute('aria-hidden', 'true');
+                const name = document.createElement('span');
+                name.className = 'personal-style-name';
+                name.textContent = item.name;
+                const layout = document.createElement('span');
+                layout.className = 'personal-style-layout';
+                layout.textContent = { magazine: '雜誌封面', glass: '玻璃卡片', 'news-points': '三點整理' }[item.settings.layout];
+                button.append(swatch, name, layout);
+                button.addEventListener('click', () => applyPersonalStyle(index));
+                styles.append(button);
+            });
+        }
+
+        function capturePersonalStyle() {
+            const value = id => Number(document.getElementById(id).value);
+            return V17Personal.style({
+                layout: document.getElementById('layoutSelector').value,
+                titleSize: value('titleSize'), subSize: value('m_SubSize'), glassSize: value('g_SubSize'),
+                overlay: value('m_Overlay'), filter: document.getElementById('bgFilter').value,
+                filterStrength: value('referenceFilterStrength'), tagColor: currentTagColor,
+                ratio: v15State.ratio, theme: v15State.theme, pointSize: v15State.pointSize,
+                logo: !v15State.showLogo ? 'hidden' : v15State.logoMode,
+                logoPosition: v15State.logoPosition,
+                showDate: document.getElementById('showDate').checked
+            });
+        }
+
+        function applyPersonalStyle(index) {
+            const entry = personal.styles[index];
+            if (!entry) return;
+            const style = entry.settings;
+            document.getElementById('layoutSelector').value = style.layout;
+            switchLayout(false);
+            [['titleSize', style.titleSize], ['m_SubSize', style.subSize], ['g_SubSize', style.glassSize],
+                ['m_Overlay', style.overlay], ['bgFilter', style.filter], ['referenceFilterStrength', style.filterStrength]]
+                .forEach(([id, value]) => { document.getElementById(id).value = value; });
+            currentTagColor = style.tagColor;
+            Object.assign(v15State, { ratio: style.ratio, theme: style.theme, pointSize: style.pointSize,
+                showLogo: style.logo !== 'hidden', logoMode: style.logo === 'capsule' ? 'capsule' : 'company', logoPosition: style.logoPosition });
+            if (style.layout === 'news-points') v15State.photo.filter = style.filter;
+            else legacyPhotoState.filter = style.filter;
+            document.getElementById('showDate').checked = style.showDate;
+            updateAllVals();
+            syncV15Controls();
+            syncV16ColorControls();
+            syncReferenceFilterControls();
+            draw();
+            saveConfig();
+            personalNotice('已套用「' + entry.name + '」。');
+        }
+
+        function addPersonalItem(key, raw) {
+            try {
+                const name = V17Personal.label(raw, key === 'tags' ? 24 : key === 'sources' ? 120 : 40);
+                const next = structuredClone(personal);
+                if (key === 'tags' && ['快訊', '房產', '財經', '國際', '政治'].includes(name)) throw new Error('此分類已在公司預設快捷中。');
+                next[key].push(key === 'styles' ? { name, settings: capturePersonalStyle() } : name);
+                if (!commitPersonal(next)) return false;
+                personalNotice('已儲存「' + name + '」。');
+                return true;
+            } catch (error) { personalNotice(error.message); return false; }
+        }
+
+        function showPersonal(tab) {
+            personalTab = tab;
+            renderPersonalManager();
+            const dialog = document.getElementById('personalDialog');
+            if (!dialog.open) dialog.showModal();
+            document.getElementById(tab === 'settings' ? 'personalRememberDraft' : 'personalNewName').focus();
+        }
+
+        function renderPersonalManager() {
+            document.querySelectorAll('[data-personal-tab]').forEach(button => {
+                const active = button.dataset.personalTab === personalTab;
+                button.setAttribute('aria-selected', String(active));
+                button.tabIndex = active ? 0 : -1;
+            });
+            document.getElementById('personalPanel').setAttribute('aria-labelledby', 'personalTab-' + personalTab);
+            const settings = personalTab === 'settings';
+            document.getElementById('personalCreateForm').hidden = settings;
+            document.getElementById('personalOptions').hidden = !settings;
+            document.getElementById('personalRememberDraft').checked = personal.rememberDraft;
+            const list = document.getElementById('personalList');
+            list.replaceChildren();
+            document.getElementById('personalStatus').textContent = '';
+            if (settings) return;
+            const key = personalTab;
+            const input = document.getElementById('personalNewName');
+            input.value = '';
+            input.maxLength = key === 'tags' ? 24 : key === 'sources' ? 120 : 40;
+            input.placeholder = { tags: '新增常用分類', sources: '新增完整來源文字', styles: '為目前樣式命名' }[key];
+            input.setAttribute('aria-label', input.placeholder);
+            if (!personal[key].length) {
+                const empty = document.createElement('p');
+                empty.className = 'personal-empty';
+                empty.textContent = '尚無個人項目';
+                list.append(empty);
+            }
+            personal[key].forEach((item, index) => {
+                const name = key === 'styles' ? item.name : item;
+                const row = document.createElement('div');
+                row.className = 'personal-entry';
+                const field = document.createElement('input');
+                field.type = 'text';
+                field.value = name;
+                field.maxLength = input.maxLength;
+                field.setAttribute('aria-label', '名稱：' + name);
+                const actions = document.createElement('div');
+                actions.className = 'personal-entry-tools';
+                const commit = edit => {
+                    const next = structuredClone(personal);
+                    edit(next[key]);
+                    if (commitPersonal(next)) {
+                        renderPersonalManager();
+                        const fields = list.querySelectorAll('.personal-entry input');
+                        (fields[Math.min(index, fields.length - 1)] || input).focus();
+                        personalNotice('個人設定已更新。');
+                    }
+                };
+                const rename = () => commit(items => {
+                    if (key === 'styles') items[index].name = field.value;
+                    else items[index] = field.value;
+                });
+                field.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); rename(); } });
+                actions.append(personalButton('save', '儲存名稱：' + name, rename));
+                if (key === 'styles') actions.append(personalButton('refresh-cw', '以目前樣式更新：' + name, () => {
+                    if (confirm('用目前外觀覆蓋「' + name + '」？不包含文字與照片。')) commit(items => { items[index].settings = capturePersonalStyle(); });
+                }));
+                [-1, 1].forEach(direction => {
+                    const button = personalButton(direction < 0 ? 'arrow-up' : 'arrow-down', (direction < 0 ? '上移：' : '下移：') + name, () => commit(items => {
+                        [items[index], items[index + direction]] = [items[index + direction], items[index]];
+                    }));
+                    button.disabled = index + direction < 0 || index + direction >= personal[key].length;
+                    actions.append(button);
+                });
+                actions.append(personalButton('trash-2', '刪除：' + name, () => {
+                    if (confirm('刪除個人項目「' + name + '」？')) commit(items => items.splice(index, 1));
+                }));
+                row.append(field, actions);
+                list.append(row);
+            });
+            lucide.createIcons();
+        }
+
+        function setupPersonalUI() {
+            [['tags', 'tagText'], ['sources', 'sourceText']].forEach(([key, id]) => {
+                const input = document.getElementById(id);
+                const area = document.createElement('div');
+                area.className = key === 'tags' ? 'personal-tag-area' : 'personal-source-area';
+                input.before(area);
+                const row = document.createElement('div');
+                row.className = 'personal-input';
+                row.append(input,
+                    personalButton('plus', key === 'tags' ? '儲存分類快捷' : '儲存來源快捷', () => addPersonalItem(key, input.value)),
+                    personalButton('sliders-horizontal', key === 'tags' ? '管理分類快捷' : '管理來源快捷', () => showPersonal(key)));
+                const shortcuts = document.createElement('div');
+                shortcuts.id = 'personal-' + key;
+                shortcuts.className = 'personal-shortcuts';
+                shortcuts.setAttribute('role', 'group');
+                shortcuts.setAttribute('aria-label', key === 'tags' ? '我的分類快捷' : '我的來源快捷');
+                area.append(row, shortcuts);
+                const docked = referenceDockedControls.find(control => control.element === input);
+                if (docked) docked.element = area;
+                input.addEventListener('input', renderPersonalShortcuts);
+            });
+            document.getElementById('personalSaveStyle').addEventListener('click', () => showPersonal('styles'));
+            document.getElementById('personalOpen').addEventListener('click', () => showPersonal('settings'));
+            document.getElementById('personalClose').addEventListener('click', () => document.getElementById('personalDialog').close());
+            const tabs = [...document.querySelectorAll('[data-personal-tab]')];
+            tabs.forEach((button, index) => {
+                button.addEventListener('click', () => { personalTab = button.dataset.personalTab; renderPersonalManager(); });
+                button.addEventListener('keydown', event => {
+                    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+                    event.preventDefault();
+                    const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+                    personalTab = tabs[next].dataset.personalTab;
+                    renderPersonalManager();
+                    tabs[next].focus();
+                });
+            });
+            document.getElementById('personalCreateForm').addEventListener('submit', event => {
+                event.preventDefault();
+                const field = document.getElementById('personalNewName');
+                if (addPersonalItem(personalTab, field.value)) { renderPersonalManager(); field.focus(); }
+            });
+            document.getElementById('personalRememberDraft').addEventListener('change', event => {
+                if (!commitPersonal({ ...personal, rememberDraft: event.target.checked })) {
+                    event.target.checked = personal.rememberDraft;
+                    return;
+                }
+                saveConfig();
+                personalNotice(personal.rememberDraft ? '將在此瀏覽器保留文字草稿。' : '已停止保留 V17 草稿；目前畫面不變，V16 舊資料不受影響。');
+            });
+            document.getElementById('personalExport').addEventListener('click', () => {
+                const blob = new Blob([JSON.stringify(personal, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'ETtoday-V17-personal.json';
+                document.body.append(link);
+                link.click();
+                link.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            });
+            document.getElementById('personalImport').addEventListener('click', () => document.getElementById('personalImportFile').click());
+            document.getElementById('personalImportFile').addEventListener('change', async event => {
+                const file = event.target.files[0];
+                event.target.value = '';
+                if (!file) return;
+                try {
+                    if (file.size > 128 * 1024) throw new Error('設定檔不可超過 128 KB。');
+                    const next = V17Personal.validate(JSON.parse(await file.text()));
+                    if (!confirm(`取代本機個人設定？\n分類 ${next.tags.length} 個、來源 ${next.sources.length} 個、樣式 ${next.styles.length} 個。\n不會取代目前圖卡內容。`)) return;
+                    if (commitPersonal(next)) {
+                        saveConfig();
+                        renderPersonalManager();
+                        personalNotice('已匯入個人設定。');
+                    }
+                } catch (error) { personalNotice('匯入失敗，原設定未變更：' + error.message); }
+            });
+            document.getElementById('personalReset').addEventListener('click', () => {
+                if (!confirm('清除所有個人分類、來源與常用樣式？\n目前圖卡、公司預設快捷與草稿保留選項不變。')) return;
+                if (commitPersonal({ ...emptyPersonal(), rememberDraft: personal.rememberDraft })) { renderPersonalManager(); personalNotice('已清除個人快捷與樣式。'); }
+            });
+            renderPersonalShortcuts();
+            lucide.createIcons();
+        }
+
+        function restoreDefaultCard() {
+            Object.entries(initialCardDefaults).forEach(([id, value]) => { document.getElementById(id).value = value; });
+            ['imgUrl', 'bgUpload'].forEach(id => { document.getElementById(id).value = ''; });
+            colorableTextIds.forEach(id => {
+                trackedTextValues[id] = document.getElementById(id).value;
+                textColorMaps[id] = Array.from(trackedTextValues[id], () => null);
+            });
+            activeTextSelection = null;
+            v15State = createDefaultV15State();
+            currentTagColor = '#F58220';
+            activeLayout = 'magazine';
+            legacyPhotoState = { ...v15State.photo };
+            document.getElementById('layoutSelector').value = 'magazine';
+            document.getElementById('showDate').checked = true;
+            document.getElementById('layoutPicker').open = true;
+            document.getElementById('previewZoom').value = '100';
+            document.querySelector('.preview-controls output').textContent = '100%';
+            canvas.style.transform = 'scale(1)';
+            document.querySelector('.url-group').hidden = true;
+            document.querySelector('.url-tab-label').classList.remove('active');
+            bgImg = null;
+            suppressDemoPhoto = false;
+            photoDragState = null;
+            applyPhotoControls(legacyPhotoState);
+            document.getElementById('photoPreviewImg').removeAttribute('src');
+            document.getElementById('photoMeta').classList.remove('visible');
+            document.getElementById('photoMetaName').textContent = '尚未載入照片';
+            document.getElementById('photoMetaSize').textContent = '';
+            updateReferenceCounts();
+            renderPointEditors();
+            renderPersonalShortcuts();
+            syncReferenceTags();
+            syncV15Controls();
+            setV16ColorTarget('tag');
+            updateAllVals();
+            switchLayout(false);
+            loadReferencePhoto();
+            personalNotice('已恢復預設畫面；個人快捷與常用樣式已保留。');
+        }
 
         function createDefaultV15State() {
             return {
@@ -968,6 +1477,7 @@
                 pointSize: 40,
                 showLogo: true,
                 logoMode: 'company',
+                logoPosition: 'top-right',
                 photo: { zoom: 1, panX: 0.5, panY: 0.5, filter: 'none' },
                 points: [
                     V15Core.createPoint('point-1', '鎖定蛋白區潛力股'),
@@ -993,7 +1503,7 @@
                 const normalizedText = V15Core.normalizePointText(restored.text);
                 const normalizedColors = V15Core.syncColorMap(restored.text, normalizedText, restored.colors);
                 return V15Core.createPoint(id, normalizedText, normalizedColors);
-            }).filter(point => point.text || point.colors.length) : defaults.points;
+            }) : defaults.points;
 
             return {
                 ratio,
@@ -1001,6 +1511,7 @@
                 pointSize,
                 showLogo: raw.showLogo !== false,
                 logoMode: ['company', 'capsule'].includes(raw.logoMode) ? raw.logoMode : 'company',
+                logoPosition: ['top-right', 'top-left', 'bottom-center'].includes(raw.logoPosition) ? raw.logoPosition : 'top-right',
                 photo: {
                     zoom: Math.min(3, Math.max(1, Number(photo.zoom) || 1)),
                     panX: Math.min(1, Math.max(0, Number.isFinite(Number(photo.panX)) ? Number(photo.panX) : 0.5)),
@@ -1040,6 +1551,7 @@
                 if (layout === 'news-points') dock.append(element);
                 else marker.after(element);
             });
+            if (layout === 'news-points') document.querySelector('.compact-source').before(document.getElementById('logoPositionSettings'));
             syncReferenceFilterControls();
             document.querySelectorAll('.layout-card[data-layout]').forEach(button => {
                 const active = button.dataset.layout === layout;
@@ -1063,6 +1575,20 @@
             document.querySelectorAll('#v16LogoChoice [data-logo-choice]').forEach(button => {
                 button.classList.toggle('active', button.dataset.logoChoice === choice);
             });
+            document.querySelectorAll('[data-logo-position]').forEach(button => {
+                const active = button.dataset.logoPosition === v15State.logoPosition;
+                button.classList.toggle('active', active);
+                button.setAttribute('aria-pressed', String(active));
+                button.disabled = !v15State.showLogo;
+            });
+        }
+
+        function setLogoPosition(position) {
+            if (!['top-right', 'top-left', 'bottom-center'].includes(position)) return;
+            v15State.logoPosition = position;
+            syncV16LogoChoice();
+            draw();
+            saveConfig();
         }
 
         function setV16LogoChoice(choice) {
@@ -1087,8 +1613,6 @@
 
         function setV16ColorTarget(target) {
             v16ColorTarget = target === 'tag' ? 'tag' : 'text';
-            const compactTarget = document.getElementById('referenceColorSelect');
-            if (compactTarget) compactTarget.value = v16ColorTarget;
             syncV16ColorControls();
         }
 
@@ -1318,13 +1842,30 @@
             }
         }
 
+        function updateReferenceCounts() {
+            document.querySelectorAll('.reference-field').forEach(field => {
+                const count = field.querySelector('.field-count');
+                const input = field.querySelector('input, textarea');
+                if (count && input) count.textContent = Array.from(input.value).length + '/' + count.textContent.split('/')[1];
+            });
+        }
+
         function setupReferenceUI() {
             const heading = document.querySelector('.workspace-title');
-            heading.innerHTML = '<img src="assets/ettoday-logo-v15.png" alt="ETtoday"><span>神器 V16</span>';
+            heading.innerHTML = '<img src="assets/ettoday-logo-v15.png" alt="ETtoday"><span>神器 V17</span>';
             referenceField('mainTitle', 60);
             referenceField('m_Sub', 100);
             referenceField('g_Title', 50);
             referenceField('g_Desc', 200);
+
+            ['titleSize', 'm_SubSize'].forEach((id, index) => {
+                const slider = document.getElementById(id).parentElement;
+                const label = document.querySelector(`label[for="${id}"]`);
+                const row = document.createElement('div');
+                row.className = 'reference-form-row content-font-row';
+                row.append(label, slider);
+                document.getElementById(index === 0 ? 'mainTitle' : 'm_Sub').closest('.reference-form-row').after(row);
+            });
 
             const content = document.getElementById('v16-section-content');
             const tagButtons = content.querySelector('.btn-group');
@@ -1375,7 +1916,7 @@
 
             const compact = document.createElement('div');
             compact.className = 'reference-compact-settings';
-            compact.innerHTML = '<div><label for="referenceRatioSelect">照片比例</label><select id="referenceRatioSelect"><option value="35">35% 照片／65% 文字</option><option value="45" selected>45% 照片／55% 文字</option><option value="55">55% 照片／45% 文字</option></select></div><div class="compact-theme"><label>卡片樣式</label></div><div class="compact-colors"><select id="referenceColorSelect" aria-label="顏色套用範圍"><option value="text">局部文字</option><option value="tag">標籤底色</option></select></div><div class="compact-font"></div><div><label for="referenceLogoSelect">右上 Logo</label><select id="referenceLogoSelect"><option value="company">透明 Logo（公司 Logo）</option><option value="capsule">深色膠囊（公司 Logo）</option><option value="hidden">隱藏</option></select></div><div class="compact-source"><label for="sourceText">資料來源</label></div>';
+            compact.innerHTML = '<div><label for="referenceRatioSelect">照片比例</label><select id="referenceRatioSelect"><option value="35">35% 照片／65% 文字</option><option value="45" selected>45% 照片／55% 文字</option><option value="55">55% 照片／45% 文字</option></select></div><div class="compact-theme"><label>卡片樣式</label></div><div class="compact-colors"></div><div><label for="referenceLogoSelect">Logo 樣式</label><select id="referenceLogoSelect"><option value="company">透明 Logo（公司 Logo）</option><option value="capsule">深色膠囊（公司 Logo）</option><option value="hidden">隱藏</option></select></div><div class="compact-source"><label for="sourceText">資料來源</label></div>';
             palette.before(compact);
             const dock = (element, destination) => {
                 const marker = document.createComment('reference-control-position');
@@ -1383,14 +1924,12 @@
                 referenceDockedControls.push({ element, marker, dock: destination });
             };
             dock(document.getElementById('v15Theme'), compact.querySelector('.compact-theme'));
+            dock(target, compact.querySelector('.compact-colors'));
             dock(swatches, compact.querySelector('.compact-colors'));
-            const titleSlider = document.getElementById('titleSize').parentElement;
-            dock(titleSlider.previousElementSibling, compact.querySelector('.compact-font'));
-            dock(titleSlider, compact.querySelector('.compact-font'));
+            dock(document.getElementById('logoPositionSettings'), compact);
             dock(document.getElementById('sourceText'), compact.querySelector('.compact-source'));
             dock(settings.querySelector('.source-shortcuts'), compact.querySelector('.compact-source'));
             compact.querySelector('#referenceRatioSelect').addEventListener('change', event => setV15Ratio(Number(event.target.value)));
-            compact.querySelector('#referenceColorSelect').addEventListener('change', event => setV16ColorTarget(event.target.value));
             compact.querySelector('#referenceLogoSelect').addEventListener('change', event => setV16LogoChoice(event.target.value));
 
             const photo = document.getElementById('v16-section-photo');
@@ -1512,10 +2051,10 @@
         }
 
         function loadReferencePhoto() {
-            if (bgImg) return;
+            if (bgImg || suppressDemoPhoto) return;
             const demo = new Image();
             demo.onload = () => {
-                if (bgImg) return;
+                if (bgImg || suppressDemoPhoto) return;
                 bgImg = demo;
                 updatePhotoMeta(demo.src, 'taipei_demo.png', demo.naturalWidth, demo.naturalHeight);
                 draw();
@@ -1524,10 +2063,16 @@
         }
 
         setupReferenceUI();
+        initialCardDefaults = Object.fromEntries([
+            'mainTitle', 'm_Sub', 'g_Title', 'g_Desc', 'tagText', 'sourceText',
+            'titleSize', 'm_SubSize', 'g_SubSize', 'm_Overlay', 'referenceFilterStrength'
+        ].map(id => [id, document.getElementById(id).value]));
+        setupPersonalUI();
         document.fonts.ready.then(function() { draw(); });
 
         window.onload = function() {
             loadConfig();
+            updateReferenceCounts();
             legacyPhotoState = readPhotoControls();
             switchLayout(false);
             updateAllVals();
@@ -1536,6 +2081,7 @@
             syncV16ColorControls();
             renderPointEditors();
             syncReferenceTags();
+            renderPersonalShortcuts();
             loadReferencePhoto();
             draw();
         };
@@ -1573,11 +2119,13 @@
 
                 img.onload = function() {
                     bgImg = img;
+                    suppressDemoPhoto = true;
                     if (document.getElementById('layoutSelector').value === 'news-points') {
                         resetV15PhotoPosition(false);
                     }
                     updatePhotoMeta(currentProxyUrl, url.split('/').pop() || '網址圖片', img.naturalWidth, img.naturalHeight);
                     draw();
+                    saveConfig();
                     document.getElementById('imgUrl').value = '';
 
                     btn.innerText = "✅ 成功";
@@ -1620,6 +2168,11 @@
         }
 
         function saveConfig() {
+            if (!personal.rememberDraft) {
+                try { localStorage.removeItem(DRAFT_KEY); }
+                catch (error) { personalNotice('無法清除 V17 草稿，請檢查瀏覽器儲存權限。'); }
+                return;
+            }
             const config = {
                 layout: document.getElementById('layoutSelector').value,
                 mainTitle: document.getElementById('mainTitle').value,
@@ -1630,6 +2183,10 @@
                 g_Desc: document.getElementById('g_Desc').value,
                 tagColor: currentTagColor,
                 titleSize: document.getElementById('titleSize').value,
+                m_SubSize: document.getElementById('m_SubSize').value,
+                g_SubSize: document.getElementById('g_SubSize').value,
+                m_Overlay: document.getElementById('m_Overlay').value,
+                suppressDemoPhoto,
                 bgZoom: document.getElementById('bgZoom').value,
                 bgPanX: document.getElementById('bgPanX').value,
                 bgPanY: document.getElementById('bgPanY').value,
@@ -1639,11 +2196,18 @@
                 textColorMaps: textColorMaps,
                 v15State: v15State
             };
-            localStorage.setItem('et_chart_v16_config', JSON.stringify(config));
+            try { localStorage.setItem(DRAFT_KEY, JSON.stringify(config)); }
+            catch (error) { personalNotice('草稿尚未儲存；瀏覽器儲存空間不足或未開放。'); }
         }
 
         function loadConfig() {
-            const saved = localStorage.getItem('et_chart_v16_config');
+            if (!personal.rememberDraft) return;
+            let saved;
+            try {
+                // Read the V16 draft once without modifying the production version's storage.
+                saved = localStorage.getItem(DRAFT_KEY);
+                if (!saved && !localStorage.getItem(PERSONAL_KEY)) saved = localStorage.getItem('et_chart_v16_config');
+            } catch (error) { personalNotice('無法讀取本機草稿，暫用預設內容。'); return; }
             if (saved) {
                 try {
                     const config = JSON.parse(saved);
@@ -1655,6 +2219,10 @@
                     document.getElementById('g_Title').value = config.g_Title || '';
                     document.getElementById('g_Desc').value = config.g_Desc || '';
                     document.getElementById('titleSize').value = config.titleSize || 90;
+                    document.getElementById('m_SubSize').value = config.m_SubSize || 46;
+                    document.getElementById('g_SubSize').value = config.g_SubSize || 40;
+                    document.getElementById('m_Overlay').value = config.m_Overlay ?? 0.8;
+                    suppressDemoPhoto = config.suppressDemoPhoto === true;
                     document.getElementById('bgZoom').value = config.bgZoom || 100;
                     document.getElementById('bgPanX').value = config.bgPanX || 50;
                     document.getElementById('bgPanY').value = config.bgPanY || 50;
@@ -1672,7 +2240,7 @@
                     }
                 } catch (error) {
                     console.warn('無法讀取已儲存的設定，改用預設值。', error);
-                    localStorage.removeItem('et_chart_v16_config');
+                    personalNotice('草稿格式無法讀取，原 V16 資料未變更。');
                 }
             }
             colorableTextIds.forEach(id => {
@@ -1683,10 +2251,7 @@
         }
 
         function resetConfig() {
-            if(confirm('確定要重設所有文字、照片位置與設定嗎？')) {
-                localStorage.removeItem('et_chart_v16_config');
-                location.reload();
-            }
+            if (confirm('恢復預設文字、示範照片與版面設定？\n你的個人分類、來源快捷與常用樣式都會保留。')) restoreDefaultCard();
         }
 
         function rememberTextSelection(id) {
@@ -1766,6 +2331,7 @@
         });
 
         document.querySelectorAll('input, textarea, select').forEach(el => {
+            if (el.closest('#personalDialog, #personalSection')) return;
             el.addEventListener('input', () => {
                 if (colorableTextIds.includes(el.id)) syncTextColorMap(el.id);
                 draw();
@@ -1776,6 +2342,7 @@
         function setTagText(text) {
             document.getElementById('tagText').value = text;
             syncReferenceTags();
+            renderPersonalShortcuts();
             draw();
             saveConfig();
         }
@@ -1789,6 +2356,7 @@
 
         function setSourceText(text) {
             document.getElementById('sourceText').value = text;
+            renderPersonalShortcuts();
             draw();
             saveConfig();
         }
@@ -1812,11 +2380,13 @@
                     var img = new Image();
                     img.onload = function() {
                         bgImg = img;
+                        suppressDemoPhoto = true;
                         if (document.getElementById('layoutSelector').value === 'news-points') {
                             resetV15PhotoPosition(false);
                         }
                         updatePhotoMeta(e.target.result, input.files[0].name, img.naturalWidth, img.naturalHeight);
                         draw();
+                        saveConfig();
                     }
                     img.src = e.target.result;
                 }
@@ -1944,8 +2514,8 @@
             }
             else if (layout === 'glass') drawGlass();
 
-            drawSource();
-            drawDate();
+            if (hasBottomLogo()) drawBottomCredits();
+            else { drawSource(); drawDate(); }
             drawV15LogoLayer();
         }
 
@@ -2057,13 +2627,45 @@
             return y + Math.max(1, lines.length) * lineHeight;
         }
 
+        function hasBottomLogo() {
+            return v15State.showLogo && v15State.logoPosition === 'bottom-center';
+        }
+
+        function getLogoPlacement() {
+            const w = 180, h = 64;
+            const position = v15State.logoPosition;
+            return {
+                x: position === 'bottom-center' ? (canvas.width - w) / 2 : position === 'top-left' ? 50 : canvas.width - w - 50,
+                y: position === 'bottom-center' ? 1228 : V15_HEADER_TOP,
+                w, h
+            };
+        }
+
+        function drawBottomCredits() {
+            ctx.save();
+            const light = document.getElementById('layoutSelector').value === 'news-points' && v15State.theme === 'light';
+            ctx.fillStyle = light ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.85)';
+            ctx.font = `bold 26px ${FONT_FAMILY}`;
+            if (!light) { ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 4; }
+            const today = new Date();
+            const date = today.getFullYear() + '.' + String(today.getMonth() + 1).padStart(2, '0') + '.' + String(today.getDate()).padStart(2, '0');
+            const showDate = document.getElementById('showDate').checked;
+            const reserved = showDate ? ctx.measureText(date).width + 30 : 0;
+            const source = document.getElementById('sourceText').value;
+            ctx.textAlign = showDate ? 'left' : 'center';
+            if (source) ctx.fillText(source, showDate ? 50 : canvas.width / 2, 1330, canvas.width - 100 - reserved);
+            if (showDate) {
+                ctx.textAlign = 'right';
+                ctx.fillText(date, canvas.width - 50, 1330);
+            }
+            ctx.restore();
+        }
+
         function drawV15LogoLayer() {
             if (!v15State.showLogo) return;
 
-            const logoWidth = 180;
-            const logoHeight = 64;
-            const logoX = canvas.width - logoWidth - 50;
-            const logoY = V15_HEADER_TOP;
+            const { x: logoX, y: logoY, w: logoWidth, h: logoHeight } = getLogoPlacement();
+            const darkInk = hasBottomLogo() && document.getElementById('layoutSelector').value === 'news-points' && v15State.theme === 'light';
 
             if (v15State.logoMode === 'capsule') {
                 ctx.fillStyle = 'rgba(0,0,0,0.6)';
@@ -2095,7 +2697,7 @@
                 const imageWidth = logoWidth;
                 const imageHeight = imageWidth * companyLogoImg.naturalHeight / companyLogoImg.naturalWidth;
                 ctx.save();
-                ctx.filter = 'brightness(0) invert(1) drop-shadow(0px 2px 4px rgba(0,0,0,0.7))';
+                ctx.filter = darkInk ? 'brightness(0)' : 'brightness(0) invert(1) drop-shadow(0px 2px 4px rgba(0,0,0,0.7))';
                 ctx.drawImage(
                     companyLogoImg,
                     logoX + (logoWidth - imageWidth) / 2,
@@ -2105,7 +2707,7 @@
                 );
                 ctx.restore();
             } else {
-                ctx.fillStyle = C_WHITE;
+                ctx.fillStyle = darkInk ? '#202124' : C_WHITE;
                 ctx.font = "bold 30px Arial, 'Microsoft JhengHei', sans-serif";
                 ctx.textAlign = 'center';
                 ctx.fillText('ETtoday', logoX + logoWidth / 2, logoY + 42);
@@ -2168,7 +2770,12 @@
             ctx.restore();
             ctx.filter = 'none';
 
-            drawTag(50, V15_HEADER_TOP, document.getElementById('tagText').value);
+            const tag = document.getElementById('tagText').value;
+            if (v15State.showLogo && v15State.logoPosition === 'top-left') {
+                ctx.font = `bold 32px ${FONT_FAMILY}`;
+                const tagWidth = Math.min(770, ctx.measureText(tag).width + 40);
+                drawTag(canvas.width - 50 - tagWidth, V15_HEADER_TOP, tag, 770);
+            } else drawTag(50, V15_HEADER_TOP, tag);
 
             const dark = v15State.theme === 'dark';
             const textColor = dark ? '#F5F5F5' : '#202124';
@@ -2206,8 +2813,10 @@
             });
 
             const contentBottom = cursorY;
-            const safeBottom = 1260;
+            const safeBottom = hasBottomLogo() ? getLogoPlacement().y - 20 : 1260;
 
+            if (hasBottomLogo()) drawBottomCredits();
+            else {
             ctx.textAlign = 'left';
             ctx.fillStyle = dark ? 'rgba(255,255,255,0.68)' : 'rgba(0,0,0,0.58)';
             ctx.font = `bold 26px ${FONT_FAMILY}`;
@@ -2221,6 +2830,7 @@
                     today.getDate().toString().padStart(2, '0');
                 ctx.textAlign = 'right';
                 ctx.fillText(date, canvas.width - 50, 1310);
+            }
             }
 
             drawV15LogoLayer();
@@ -2260,7 +2870,7 @@
 
             // 3. Sub
             const sub = document.getElementById('m_Sub').value;
-            const safeBottom = 1310 - 26 - 40;
+            const safeBottom = hasBottomLogo() ? getLogoPlacement().y - 20 : 1310 - 26 - 40;
             let contentBottom = titleBottom;
             ctx.fillStyle = "#ddd";
             ctx.font = `bold ${contentSize}px ${FONT_FAMILY}`;
@@ -2295,7 +2905,7 @@
             const titleSize = parseInt(document.getElementById('titleSize').value);
             const contentSize = parseInt(document.getElementById('g_SubSize').value);
 
-            const x = 80, y = 750, w = 920, h = 500;
+            const x = 80, y = hasBottomLogo() ? 710 : 750, w = 920, h = 500;
 
             ctx.save();
             roundRect(ctx, x, y, w, h, 40);
@@ -2328,13 +2938,13 @@
             wrapText(ctx, desc, x + 60, y + 310, w - 120, contentSize * 1.5);
         }
 
-        function drawTag(x, y, text) {
+        function drawTag(x, y, text, maxWidth = Infinity) {
             const fontSize = 32;
             ctx.font = `bold ${fontSize}px ${FONT_FAMILY}`;
             const metrics = ctx.measureText(text);
             const paddingX = 40;
             const paddingY = 24;
-            const w = metrics.width + paddingX;
+            const w = Math.min(maxWidth, metrics.width + paddingX);
             const h = fontSize + paddingY;
 
             ctx.fillStyle = currentTagColor;
@@ -2343,7 +2953,8 @@
 
             ctx.fillStyle = "white";
             ctx.textAlign = "center";
-            ctx.fillText(text, x + w/2, y + h/2 + fontSize/3);
+            if (Number.isFinite(maxWidth)) ctx.fillText(text, x + w/2, y + h/2 + fontSize/3, w - paddingX);
+            else ctx.fillText(text, x + w/2, y + h/2 + fontSize/3);
         }
 
         function drawSource() {

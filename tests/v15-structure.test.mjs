@@ -30,8 +30,8 @@ test('V15 backup keeps the approved canvas and layouts', async () => {
   assert.ok(v15.includes('ETtoday 神器 V15'));
 });
 
-test('production entry matches the approved V16 release', async () => {
+test('production entry matches the approved V17 release', async () => {
   const production = await readFile(new URL('../index.html', import.meta.url), 'utf8');
-  const v16 = await readFile(new URL('../V16.html', import.meta.url), 'utf8');
-  assert.equal(production, v16);
+  const v17 = await readFile(new URL('../V17.html', import.meta.url), 'utf8');
+  assert.equal(production, v17);
 });
