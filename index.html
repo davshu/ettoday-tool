@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ETtoday 圖卡神器 V17</title>
+    <title>ETtoday 圖卡神器 V18</title>
 
     <link rel="icon" href="data:,">
 
@@ -124,7 +124,19 @@
             border: 0 !important;
         }
 
-        .layout-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+        .layout-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+        .layout-card[data-layout="photo-headline"] .layout-mini {
+            background: #eee url("assets/v16-demo-taipei.png") center top / 100% 61% no-repeat;
+        }
+        .mini-headline-copy { position: absolute; inset: 72% 10% auto; height: 5px; background: #222; box-shadow: 0 8px #222; }
+        #photoHeadlineTagSetting,
+        body[data-layout="photo-headline"][data-headline-tag="false"] .category-row,
+        body[data-layout="photo-headline"][data-headline-tag="false"] #v16ColorTarget [data-color-target="tag"] { display: none; }
+        body[data-layout="photo-headline"] #photoHeadlineTagSetting { display: flex; gap: 10px; align-items: center; }
+        body[data-layout="photo-headline"][data-headline-tag="false"] #v16ColorTarget { grid-template-columns: 1fr; }
+        @media (max-width: 480px) {
+            .layout-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
         .layout-card {
             min-width: 0;
             padding: 6px;
@@ -633,7 +645,7 @@
     <div class="container">
         <div class="editor">
             <header class="workspace-header">
-                <h1 class="workspace-title">ETtoday 神器 V17</h1>
+                <h1 class="workspace-title">ETtoday 神器 V18</h1>
                 <span class="workspace-meta">新聞圖卡 · 1080 × 1350</span>
             </header>
 
@@ -648,6 +660,7 @@
                     <option value="magazine">版型 1：雜誌封面風</option>
                     <option value="glass">版型 2：懸浮玻璃卡片</option>
                     <option value="news-points">版型 3：新聞三點整理</option>
+                    <option value="photo-headline">版型 4：圖片頭條</option>
                 </select>
                 <div class="layout-grid" role="group" aria-label="選擇新聞圖卡版型">
                     <button type="button" class="layout-card active" data-layout="magazine" aria-pressed="true" onclick="setV16Layout('magazine')">
@@ -661,6 +674,10 @@
                     <button type="button" class="layout-card" data-layout="news-points" aria-pressed="false" onclick="setV16Layout('news-points')">
                         <img class="layout-mini" src="assets/v16-layout-news-points.png" alt="三點整理版型預覽">
                         <span class="layout-card-name">三點整理</span>
+                    </button>
+                    <button type="button" class="layout-card" data-layout="photo-headline" aria-pressed="false" onclick="setV16Layout('photo-headline')">
+                        <span class="layout-mini" aria-hidden="true"><span class="mini-headline-copy"></span></span>
+                        <span class="layout-card-name">圖片頭條</span>
                     </button>
                 </div>
             <div id="personalSection">
@@ -961,7 +978,7 @@
                 const tagColor = raw.tagColor === undefined ? '#F58220' : raw.tagColor;
                 if (typeof tagColor !== 'string' || !/^#[a-f0-9]{6}$/i.test(tagColor)) throw new Error('色碼格式不正確。');
                 return {
-                    layout: oneOf('layout', ['magazine', 'glass', 'news-points']),
+                    layout: oneOf('layout', ['magazine', 'glass', 'news-points', 'photo-headline']),
                     titleSize: number('titleSize', 40, 140, 90),
                     subSize: number('subSize', 24, 80, 46),
                     glassSize: number('glassSize', 24, 60, 40),
@@ -974,11 +991,12 @@
                     logo: oneOf('logo', ['company', 'capsule', 'hidden'], 'company'),
                     logoPosition: oneOf('logoPosition', ['top-right', 'top-left', 'bottom-center'], 'top-right'),
                     showDate: oneOf('showDate', [true, false], true),
+                    photoHeadlineTag: oneOf('photoHeadlineTag', [true, false], false),
                     tagColor
                 };
             }
             function validate(raw) {
-                if (!object(raw) || raw.version !== 1 || typeof raw.rememberDraft !== 'boolean') throw new Error('不是支援的 V17 個人設定檔。');
+                if (!object(raw) || raw.version !== 1 || typeof raw.rememberDraft !== 'boolean') throw new Error('不是支援的個人設定檔。');
                 const list = (key, maxLength, maxItems) => {
                     if (!Array.isArray(raw[key]) || raw[key].length > maxItems) throw new Error('個人設定項目過多或格式不正確。');
                     const seen = new Set();
@@ -1114,8 +1132,8 @@
         let photoDragState = null;
         let v16ColorTarget = 'tag';
         const referenceDockedControls = [];
-        const PERSONAL_KEY = 'et_chart_v17_personal';
-        const DRAFT_KEY = 'et_chart_v17_config';
+        const PERSONAL_KEY = 'et_chart_v18_personal';
+        const DRAFT_KEY = 'et_chart_v18_config';
         let personalTab = 'tags';
         let toastTimer;
         let suppressDemoPhoto = false;
@@ -1135,7 +1153,7 @@
 
         function readPersonal() {
             try {
-                const saved = localStorage.getItem(PERSONAL_KEY);
+                const saved = localStorage.getItem(PERSONAL_KEY) ?? localStorage.getItem('et_chart_v17_personal');
                 return saved ? V17Personal.validate(JSON.parse(saved)) : emptyPersonal();
             } catch (error) {
                 personalNotice('無法讀取個人設定，暫用預設值；原儲存資料未刪除。');
@@ -1208,7 +1226,7 @@
                 name.textContent = item.name;
                 const layout = document.createElement('span');
                 layout.className = 'personal-style-layout';
-                layout.textContent = { magazine: '雜誌封面', glass: '玻璃卡片', 'news-points': '三點整理' }[item.settings.layout];
+                layout.textContent = { magazine: '雜誌封面', glass: '玻璃卡片', 'news-points': '三點整理', 'photo-headline': '圖片頭條' }[item.settings.layout];
                 button.append(swatch, name, layout);
                 button.addEventListener('click', () => applyPersonalStyle(index));
                 styles.append(button);
@@ -1225,6 +1243,7 @@
                 ratio: v15State.ratio, theme: v15State.theme, pointSize: v15State.pointSize,
                 logo: !v15State.showLogo ? 'hidden' : v15State.logoMode,
                 logoPosition: v15State.logoPosition,
+                photoHeadlineTag: document.getElementById('photoHeadlineTag').checked,
                 showDate: document.getElementById('showDate').checked
             });
         }
@@ -1244,9 +1263,10 @@
             if (style.layout === 'news-points') v15State.photo.filter = style.filter;
             else legacyPhotoState.filter = style.filter;
             document.getElementById('showDate').checked = style.showDate;
+            document.getElementById('photoHeadlineTag').checked = style.photoHeadlineTag;
             updateAllVals();
             syncV15Controls();
-            syncV16ColorControls();
+            syncPhotoHeadlineTag();
             syncReferenceFilterControls();
             draw();
             saveConfig();
@@ -1393,14 +1413,14 @@
                     return;
                 }
                 saveConfig();
-                personalNotice(personal.rememberDraft ? '將在此瀏覽器保留文字草稿。' : '已停止保留 V17 草稿；目前畫面不變，V16 舊資料不受影響。');
+                personalNotice(personal.rememberDraft ? '將在此瀏覽器保留文字草稿。' : '已停止保留 V18 草稿。');
             });
             document.getElementById('personalExport').addEventListener('click', () => {
                 const blob = new Blob([JSON.stringify(personal, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = 'ETtoday-V17-personal.json';
+                link.download = 'ETtoday-V18-personal.json';
                 document.body.append(link);
                 link.click();
                 link.remove();
@@ -1444,6 +1464,7 @@
             legacyPhotoState = { ...v15State.photo };
             document.getElementById('layoutSelector').value = 'magazine';
             document.getElementById('showDate').checked = true;
+            document.getElementById('photoHeadlineTag').checked = false;
             document.getElementById('layoutPicker').open = true;
             document.getElementById('previewZoom').value = '100';
             document.querySelector('.preview-controls output').textContent = '100%';
@@ -1544,7 +1565,7 @@
         function syncV16LayoutCards() {
             const layout = document.getElementById('layoutSelector').value;
             document.getElementById('layoutPickerSelected').textContent = {
-                magazine: '雜誌封面', glass: '玻璃卡片', 'news-points': '三點整理'
+                magazine: '雜誌封面', glass: '玻璃卡片', 'news-points': '三點整理', 'photo-headline': '圖片頭條'
             }[layout];
             document.body.dataset.layout = layout;
             referenceDockedControls.forEach(({ element, marker, dock }) => {
@@ -1553,17 +1574,19 @@
             });
             if (layout === 'news-points') document.querySelector('.compact-source').before(document.getElementById('logoPositionSettings'));
             syncReferenceFilterControls();
+            syncPhotoHeadlineTag();
             document.querySelectorAll('.layout-card[data-layout]').forEach(button => {
                 const active = button.dataset.layout === layout;
                 const prefix = layout === 'news-points' ? 'v16-news-picker' : 'v16-layout';
-                button.querySelector('img').src = `assets/${prefix}-${button.dataset.layout}.png`;
+                const image = button.querySelector('img');
+                if (image) image.src = `assets/${prefix}-${button.dataset.layout}.png`;
                 button.classList.toggle('active', active);
                 button.setAttribute('aria-pressed', String(active));
             });
         }
 
         function setV16Layout(layout) {
-            if (!['magazine', 'glass', 'news-points'].includes(layout)) return;
+            if (!['magazine', 'glass', 'news-points', 'photo-headline'].includes(layout)) return;
             document.getElementById('layoutSelector').value = layout;
             switchLayout();
         }
@@ -1599,15 +1622,26 @@
             saveConfig();
         }
 
+        function syncPhotoHeadlineTag() {
+            document.body.dataset.headlineTag = String(document.getElementById('photoHeadlineTag').checked);
+            syncV16ColorControls();
+        }
+
+        function getV16ColorTarget() {
+            return activeLayout === 'photo-headline' && !document.getElementById('photoHeadlineTag').checked
+                ? 'text' : v16ColorTarget;
+        }
+
         function syncV16ColorControls() {
+            const target = getV16ColorTarget();
             document.querySelectorAll('#v16ColorTarget [data-color-target]').forEach(button => {
-                button.classList.toggle('active', button.dataset.colorTarget === v16ColorTarget);
+                button.classList.toggle('active', button.dataset.colorTarget === target);
             });
             const clearButton = document.getElementById('v16ColorClear');
-            if (clearButton) clearButton.disabled = v16ColorTarget === 'tag';
+            if (clearButton) clearButton.disabled = target === 'tag';
             document.querySelectorAll('.palette-swatch:not(.palette-clear)').forEach(button => {
                 const command = button.getAttribute('onclick') || '';
-                button.classList.toggle('is-active', v16ColorTarget === 'tag' && command.includes(currentTagColor));
+                button.classList.toggle('is-active', target === 'tag' && command.includes(currentTagColor));
             });
         }
 
@@ -1617,7 +1651,7 @@
         }
 
         function applyV16PaletteColor(color) {
-            if (v16ColorTarget === 'tag') {
+            if (getV16ColorTarget() === 'tag') {
                 if (color) setTagColor(color);
                 return;
             }
@@ -1852,7 +1886,7 @@
 
         function setupReferenceUI() {
             const heading = document.querySelector('.workspace-title');
-            heading.innerHTML = '<img src="assets/ettoday-logo-v15.png" alt="ETtoday"><span>神器 V17</span>';
+            heading.innerHTML = '<img src="assets/ettoday-logo-v15.png" alt="ETtoday"><span>神器 V18</span>';
             referenceField('mainTitle', 60);
             referenceField('m_Sub', 100);
             referenceField('g_Title', 50);
@@ -1873,9 +1907,22 @@
             const tagLabel = tagButtons.previousElementSibling;
             tagLabel.textContent = '分類標籤';
             const tagRow = document.createElement('div');
-            tagRow.className = 'reference-form-row';
+            tagRow.className = 'reference-form-row category-row';
             tagLabel.before(tagRow);
             tagRow.append(tagLabel, tagButtons);
+            const headlineTagSetting = document.createElement('label');
+            headlineTagSetting.id = 'photoHeadlineTagSetting';
+            headlineTagSetting.className = 'field-label';
+            const headlineTag = document.createElement('input');
+            headlineTag.type = 'checkbox';
+            headlineTag.id = 'photoHeadlineTag';
+            headlineTag.addEventListener('change', () => {
+                syncPhotoHeadlineTag();
+                draw();
+                saveConfig();
+            });
+            headlineTagSetting.append('顯示分類標籤', headlineTag);
+            tagRow.before(headlineTagSetting);
 
             const style = document.getElementById('v16-section-style-output');
             const palette = document.createElement('div');
@@ -1910,7 +1957,7 @@
             const tagText = document.getElementById('tagText');
             tagText.addEventListener('input', syncReferenceTags);
             const customTagRow = document.createElement('div');
-            customTagRow.className = 'reference-form-row';
+            customTagRow.className = 'reference-form-row category-row';
             customTagRow.append(customTagLabel, tagText);
             tagRow.after(customTagRow);
 
@@ -2170,7 +2217,7 @@
         function saveConfig() {
             if (!personal.rememberDraft) {
                 try { localStorage.removeItem(DRAFT_KEY); }
-                catch (error) { personalNotice('無法清除 V17 草稿，請檢查瀏覽器儲存權限。'); }
+                catch (error) { personalNotice('無法清除 V18 草稿，請檢查瀏覽器儲存權限。'); }
                 return;
             }
             const config = {
@@ -2193,6 +2240,7 @@
                 bgFilter: document.getElementById('bgFilter').value,
                 filterStrength: document.getElementById('referenceFilterStrength').value,
                 showDate: document.getElementById('showDate').checked,
+                photoHeadlineTag: document.getElementById('photoHeadlineTag').checked,
                 textColorMaps: textColorMaps,
                 v15State: v15State
             };
@@ -2204,9 +2252,10 @@
             if (!personal.rememberDraft) return;
             let saved;
             try {
-                // Read the V16 draft once without modifying the production version's storage.
                 saved = localStorage.getItem(DRAFT_KEY);
-                if (!saved && !localStorage.getItem(PERSONAL_KEY)) saved = localStorage.getItem('et_chart_v16_config');
+                if (!saved && !localStorage.getItem(PERSONAL_KEY)) {
+                    saved = localStorage.getItem('et_chart_v17_config') ?? localStorage.getItem('et_chart_v16_config');
+                }
             } catch (error) { personalNotice('無法讀取本機草稿，暫用預設內容。'); return; }
             if (saved) {
                 try {
@@ -2229,6 +2278,7 @@
                     document.getElementById('bgFilter').value = config.bgFilter || 'none';
                     document.getElementById('referenceFilterStrength').value = config.filterStrength || 0;
                     if (typeof config.showDate === 'boolean') document.getElementById('showDate').checked = config.showDate;
+                    document.getElementById('photoHeadlineTag').checked = config.photoHeadlineTag === true;
                     if(config.tagColor) currentTagColor = config.tagColor;
                     v15State = normalizeV15State(config.v15State);
                     if (config.textColorMaps) {
@@ -2240,7 +2290,7 @@
                     }
                 } catch (error) {
                     console.warn('無法讀取已儲存的設定，改用預設值。', error);
-                    personalNotice('草稿格式無法讀取，原 V16 資料未變更。');
+                    personalNotice('草稿格式無法讀取，暫用預設內容。');
                 }
             }
             colorableTextIds.forEach(id => {
@@ -2476,6 +2526,8 @@
             if (resetValues) {
                 if(layout === 'magazine') {
                     document.getElementById('titleSize').value = 90;
+                } else if (layout === 'photo-headline') {
+                    document.getElementById('titleSize').value = 58;
                 } else if (layout === 'glass') {
                     document.getElementById('titleSize').value = 64;
                 } else {
@@ -2505,6 +2557,12 @@
             const validation = document.getElementById('v15Validation');
             validation.classList.remove('invalid');
             validation.innerText = '目前內容可以輸出。';
+
+            if (layout === 'photo-headline') {
+                drawPhotoHeadline();
+                drawV15LogoLayer();
+                return;
+            }
 
             drawFullBg();
 
@@ -2550,6 +2608,59 @@
                 ctx.fillText("請上傳背景圖片", canvas.width/2, canvas.height/2);
             }
             ctx.filter = 'none';
+        }
+
+        function drawPhotoHeadline() {
+            const photoHeight = 824;
+            const gutter = 96;
+            const textWidth = canvas.width - 2 * gutter;
+            const tag = document.getElementById('photoHeadlineTag').checked ? document.getElementById('tagText').value.trim() : '';
+            const titleTop = tag ? 987 : 910;
+            const titleLimit = hasBottomLogo() ? getLogoPlacement().y - 18 : 1240;
+            ctx.save();
+            ctx.fillStyle = '#ededed';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (bgImg) {
+                const photo = readPhotoControls();
+                applyCanvasImageFilter(photo.filter);
+                drawImageProp(ctx, bgImg, 0, 0, canvas.width, photoHeight, photo.panX, photo.panY, photo.zoom);
+                ctx.filter = 'none';
+            } else {
+                ctx.fillStyle = '#30363a';
+                ctx.fillRect(0, 0, canvas.width, photoHeight);
+            }
+            if (tag) {
+                ctx.textBaseline = 'alphabetic';
+                drawTag(gutter, 901, tag, textWidth);
+            }
+
+            const title = document.getElementById('mainTitle').value;
+            let size = Number(document.getElementById('titleSize').value);
+            const clauses = title.split('\u3000');
+            ctx.font = `900 ${size}px ${FONT_FAMILY}`;
+            const renderedTitle = clauses.length === 2 && clauses.every(clause => clause.trim() &&
+                getWrappedLines(ctx, clause, textWidth).length === 1) ? clauses.join('\n') : title;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = '#151515';
+            while (size > 24) {
+                ctx.font = `900 ${size}px ${FONT_FAMILY}`;
+                const rows = getWrappedLines(ctx, renderedTitle, textWidth).length;
+                if (titleTop + rows * size * 1.2 <= titleLimit) break;
+                size--;
+            }
+            ctx.font = `900 ${size}px ${FONT_FAMILY}`;
+            drawColoredWrappedText(ctx, renderedTitle, textColorMaps.mainTitle, gutter, titleTop, textWidth, size * 1.2);
+
+            ctx.font = `24px ${FONT_FAMILY}`;
+            ctx.fillStyle = '#383838';
+            ctx.textBaseline = 'alphabetic';
+            const source = document.getElementById('sourceText').value;
+            const showDate = document.getElementById('showDate').checked;
+            if (showDate) ctx.fillText(new Date().toLocaleDateString('sv-SE').replaceAll('-', '.'), gutter, 1314);
+            ctx.textAlign = 'right';
+            if (source) ctx.fillText(source, canvas.width - gutter, 1314, textWidth - (showDate ? 170 : 0));
+            ctx.restore();
         }
 
         function applyCanvasImageFilter(filter) {
@@ -2665,7 +2776,8 @@
             if (!v15State.showLogo) return;
 
             const { x: logoX, y: logoY, w: logoWidth, h: logoHeight } = getLogoPlacement();
-            const darkInk = hasBottomLogo() && document.getElementById('layoutSelector').value === 'news-points' && v15State.theme === 'light';
+            const layout = document.getElementById('layoutSelector').value;
+            const darkInk = hasBottomLogo() && (layout === 'photo-headline' || (layout === 'news-points' && v15State.theme === 'light'));
 
             if (v15State.logoMode === 'capsule') {
                 ctx.fillStyle = 'rgba(0,0,0,0.6)';
