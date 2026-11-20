@@ -130,10 +130,8 @@
         }
         .mini-headline-copy { position: absolute; inset: 72% 10% auto; height: 5px; background: #222; box-shadow: 0 8px #222; }
         #photoHeadlineTagSetting,
-        body[data-layout="photo-headline"][data-headline-tag="false"] .category-row,
-        body[data-layout="photo-headline"][data-headline-tag="false"] #v16ColorTarget [data-color-target="tag"] { display: none; }
+        body[data-layout="photo-headline"][data-headline-tag="false"] .category-row { display: none; }
         body[data-layout="photo-headline"] #photoHeadlineTagSetting { display: flex; gap: 10px; align-items: center; }
-        body[data-layout="photo-headline"][data-headline-tag="false"] #v16ColorTarget { grid-template-columns: 1fr; }
         @media (max-width: 480px) {
             .layout-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
@@ -701,6 +699,17 @@
                     <textarea id="m_Sub" oninput="draw()">信義區單坪破300萬，專家分析：這波漲勢恐延續至年底。</textarea>
                 </div>
 
+                <div class="input-group" data-layout-group="photo-headline">
+                    <label class="field-label" for="photoHeadlineIntro">引言（選填）</label>
+                    <textarea id="photoHeadlineIntro" maxlength="100" oninput="draw()"></textarea>
+                    <label class="field-label" for="photoHeadlineIntroSize">引言字體大小 <span id="v_photoHeadlineIntroSize" class="val-display">36</span></label>
+                    <div class="slider-group">
+                        <span class="slider-icon">A−</span>
+                        <input type="range" id="photoHeadlineIntroSize" min="24" max="80" step="2" value="36" oninput="updateVal('photoHeadlineIntroSize'); draw()">
+                        <span class="slider-icon">A＋</span>
+                    </div>
+                </div>
+
                 <div id="group-glass" class="input-group" data-layout-group="glass">
                     <label class="field-label" for="g_Title">卡片標題（選填）</label>
                     <input type="text" id="g_Title" value="購屋族該如何應對？" oninput="draw()">
@@ -981,6 +990,7 @@
                     layout: oneOf('layout', ['magazine', 'glass', 'news-points', 'photo-headline']),
                     titleSize: number('titleSize', 40, 140, 90),
                     subSize: number('subSize', 24, 80, 46),
+                    photoHeadlineIntroSize: number('photoHeadlineIntroSize', 24, 80, 36),
                     glassSize: number('glassSize', 24, 60, 40),
                     overlay: number('overlay', 0, 1, 0.8),
                     filterStrength: number('filterStrength', 0, 100, 0),
@@ -1117,12 +1127,9 @@
 
         let bgImg = null;
         let currentTagColor = "#F58220";
-        const colorableTextIds = ['mainTitle', 'm_Sub'];
-        let textColorMaps = { mainTitle: [], m_Sub: [] };
-        let trackedTextValues = {
-            mainTitle: document.getElementById('mainTitle').value,
-            m_Sub: document.getElementById('m_Sub').value
-        };
+        const colorableTextIds = ['mainTitle', 'm_Sub', 'photoHeadlineIntro'];
+        const textColorMaps = Object.fromEntries(colorableTextIds.map(id => [id, []]));
+        const trackedTextValues = Object.fromEntries(colorableTextIds.map(id => [id, document.getElementById(id).value]));
         let activeTextSelection = null;
         let v15PointSequence = 4;
         let v15State = createDefaultV15State();
@@ -1238,6 +1245,7 @@
             return V17Personal.style({
                 layout: document.getElementById('layoutSelector').value,
                 titleSize: value('titleSize'), subSize: value('m_SubSize'), glassSize: value('g_SubSize'),
+                photoHeadlineIntroSize: value('photoHeadlineIntroSize'),
                 overlay: value('m_Overlay'), filter: document.getElementById('bgFilter').value,
                 filterStrength: value('referenceFilterStrength'), tagColor: currentTagColor,
                 ratio: v15State.ratio, theme: v15State.theme, pointSize: v15State.pointSize,
@@ -1255,6 +1263,7 @@
             document.getElementById('layoutSelector').value = style.layout;
             switchLayout(false);
             [['titleSize', style.titleSize], ['m_SubSize', style.subSize], ['g_SubSize', style.glassSize],
+                ['photoHeadlineIntroSize', style.photoHeadlineIntroSize],
                 ['m_Overlay', style.overlay], ['bgFilter', style.filter], ['referenceFilterStrength', style.filterStrength]]
                 .forEach(([id, value]) => { document.getElementById(id).value = value; });
             currentTagColor = style.tagColor;
@@ -1627,14 +1636,13 @@
             syncV16ColorControls();
         }
 
-        function getV16ColorTarget() {
-            return activeLayout === 'photo-headline' && !document.getElementById('photoHeadlineTag').checked
-                ? 'text' : v16ColorTarget;
-        }
-
         function syncV16ColorControls() {
-            const target = getV16ColorTarget();
+            const target = v16ColorTarget;
             document.querySelectorAll('#v16ColorTarget [data-color-target]').forEach(button => {
+                if (button.dataset.colorTarget === 'tag') {
+                    button.textContent = activeLayout === 'photo-headline' && !document.getElementById('photoHeadlineTag').checked
+                        ? '引言色線' : '標籤底色';
+                }
                 button.classList.toggle('active', button.dataset.colorTarget === target);
             });
             const clearButton = document.getElementById('v16ColorClear');
@@ -1651,7 +1659,7 @@
         }
 
         function applyV16PaletteColor(color) {
-            if (getV16ColorTarget() === 'tag') {
+            if (v16ColorTarget === 'tag') {
                 if (color) setTagColor(color);
                 return;
             }
@@ -1889,16 +1897,17 @@
             heading.innerHTML = '<img src="assets/ettoday-logo-v15.png" alt="ETtoday"><span>神器 V18</span>';
             referenceField('mainTitle', 60);
             referenceField('m_Sub', 100);
+            referenceField('photoHeadlineIntro', 100);
             referenceField('g_Title', 50);
             referenceField('g_Desc', 200);
 
-            ['titleSize', 'm_SubSize'].forEach((id, index) => {
+            [['titleSize', 'mainTitle'], ['m_SubSize', 'm_Sub'], ['photoHeadlineIntroSize', 'photoHeadlineIntro']].forEach(([id, field]) => {
                 const slider = document.getElementById(id).parentElement;
                 const label = document.querySelector(`label[for="${id}"]`);
                 const row = document.createElement('div');
                 row.className = 'reference-form-row content-font-row';
                 row.append(label, slider);
-                document.getElementById(index === 0 ? 'mainTitle' : 'm_Sub').closest('.reference-form-row').after(row);
+                document.getElementById(field).closest('.reference-form-row').after(row);
             });
 
             const content = document.getElementById('v16-section-content');
@@ -2111,8 +2120,8 @@
 
         setupReferenceUI();
         initialCardDefaults = Object.fromEntries([
-            'mainTitle', 'm_Sub', 'g_Title', 'g_Desc', 'tagText', 'sourceText',
-            'titleSize', 'm_SubSize', 'g_SubSize', 'm_Overlay', 'referenceFilterStrength'
+            'mainTitle', 'm_Sub', 'photoHeadlineIntro', 'g_Title', 'g_Desc', 'tagText', 'sourceText',
+            'titleSize', 'm_SubSize', 'photoHeadlineIntroSize', 'g_SubSize', 'm_Overlay', 'referenceFilterStrength'
         ].map(id => [id, document.getElementById(id).value]));
         setupPersonalUI();
         document.fonts.ready.then(function() { draw(); });
@@ -2210,7 +2219,7 @@
         }
 
         function updateAllVals() {
-            ['bgZoom', 'titleSize', 'm_SubSize', 'm_Overlay', 'g_SubSize'].forEach(id => updateVal(id));
+            ['bgZoom', 'titleSize', 'm_SubSize', 'photoHeadlineIntroSize', 'm_Overlay', 'g_SubSize'].forEach(id => updateVal(id));
             updateVal('pan');
         }
 
@@ -2226,11 +2235,13 @@
                 tagText: document.getElementById('tagText').value,
                 sourceText: document.getElementById('sourceText').value,
                 m_Sub: document.getElementById('m_Sub').value,
+                photoHeadlineIntro: document.getElementById('photoHeadlineIntro').value,
                 g_Title: document.getElementById('g_Title').value,
                 g_Desc: document.getElementById('g_Desc').value,
                 tagColor: currentTagColor,
                 titleSize: document.getElementById('titleSize').value,
                 m_SubSize: document.getElementById('m_SubSize').value,
+                photoHeadlineIntroSize: document.getElementById('photoHeadlineIntroSize').value,
                 g_SubSize: document.getElementById('g_SubSize').value,
                 m_Overlay: document.getElementById('m_Overlay').value,
                 suppressDemoPhoto,
@@ -2265,10 +2276,12 @@
                     document.getElementById('tagText').value = config.tagText || '';
                     document.getElementById('sourceText').value = config.sourceText || '';
                     document.getElementById('m_Sub').value = config.m_Sub || '';
+                    document.getElementById('photoHeadlineIntro').value = config.photoHeadlineIntro || '';
                     document.getElementById('g_Title').value = config.g_Title || '';
                     document.getElementById('g_Desc').value = config.g_Desc || '';
                     document.getElementById('titleSize').value = config.titleSize || 90;
                     document.getElementById('m_SubSize').value = config.m_SubSize || 46;
+                    document.getElementById('photoHeadlineIntroSize').value = config.photoHeadlineIntroSize ?? 36;
                     document.getElementById('g_SubSize').value = config.g_SubSize || 40;
                     document.getElementById('m_Overlay').value = config.m_Overlay ?? 0.8;
                     suppressDemoPhoto = config.suppressDemoPhoto === true;
@@ -2635,22 +2648,47 @@
             }
 
             const title = document.getElementById('mainTitle').value;
+            let intro = document.getElementById('photoHeadlineIntro').value;
+            const hasIntro = Boolean(intro.trim());
+            const introInset = 30;
+            const introGap = 22;
+            const introWidth = textWidth - introInset;
             let size = Number(document.getElementById('titleSize').value);
+            let introSize = Number(document.getElementById('photoHeadlineIntroSize').value);
             const clauses = title.split('\u3000');
             ctx.font = `900 ${size}px ${FONT_FAMILY}`;
-            const renderedTitle = clauses.length === 2 && clauses.every(clause => clause.trim() &&
+            let renderedTitle = clauses.length === 2 && clauses.every(clause => clause.trim() &&
                 getWrappedLines(ctx, clause, textWidth).length === 1) ? clauses.join('\n') : title;
             ctx.textAlign = 'left';
             ctx.textBaseline = 'top';
             ctx.fillStyle = '#151515';
-            while (size > 24) {
+            let introHeight = 0;
+            while (true) {
+                if (hasIntro) {
+                    ctx.font = `700 ${introSize}px ${FONT_FAMILY}`;
+                    introHeight = getWrappedLines(ctx, intro, introWidth).length * introSize * 1.28;
+                }
                 ctx.font = `900 ${size}px ${FONT_FAMILY}`;
-                const rows = getWrappedLines(ctx, renderedTitle, textWidth).length;
-                if (titleTop + rows * size * 1.2 <= titleLimit) break;
-                size--;
+                const titleHeight = getWrappedLines(ctx, renderedTitle, textWidth).length * size * 1.2;
+                const totalHeight = titleHeight + (hasIntro ? introGap + introHeight : 0);
+                if (titleTop + totalHeight <= titleLimit) break;
+                if (hasIntro && introSize > 24 && (introHeight >= titleHeight || size === 24)) introSize--;
+                else if (size > 24) size--;
+                else if (hasIntro && (intro.includes('\n') || renderedTitle.includes('\n'))) {
+                    intro = intro.replaceAll('\n', ' ');
+                    renderedTitle = renderedTitle.replaceAll('\n', ' ');
+                }
+                else break;
             }
-            ctx.font = `900 ${size}px ${FONT_FAMILY}`;
-            drawColoredWrappedText(ctx, renderedTitle, textColorMaps.mainTitle, gutter, titleTop, textWidth, size * 1.2);
+            const titleBottom = drawColoredWrappedText(ctx, renderedTitle, textColorMaps.mainTitle, gutter, titleTop, textWidth, size * 1.2);
+            if (hasIntro) {
+                const introTop = titleBottom + introGap;
+                ctx.fillStyle = currentTagColor;
+                ctx.fillRect(gutter, introTop, 8, introHeight);
+                ctx.fillStyle = '#383838';
+                ctx.font = `700 ${introSize}px ${FONT_FAMILY}`;
+                drawColoredWrappedText(ctx, intro, textColorMaps.photoHeadlineIntro, gutter + introInset, introTop, introWidth, introSize * 1.28);
+            }
 
             ctx.font = `24px ${FONT_FAMILY}`;
             ctx.fillStyle = '#383838';
