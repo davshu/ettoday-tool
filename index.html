@@ -2059,6 +2059,21 @@
             zoomLabel.remove();
             zoomSlider.remove();
 
+            const photoRatio = document.createElement('input');
+            photoRatio.id = 'photoHeadlineRatio';
+            photoRatio.type = 'range';
+            photoRatio.min = '45';
+            photoRatio.max = '65';
+            photoRatio.value = '61';
+            const ratioRow = photoRow('照片比例', 'panels-top-left', photoRatio, document.createElement('output'));
+            ratioRow.dataset.layoutGroup = 'photo-headline';
+            ratioRow.classList.add('input-group');
+            zoomRow.after(ratioRow);
+            photoRatio.addEventListener('input', () => {
+                draw();
+                saveConfig();
+            });
+
             const panX = document.getElementById('bgPanX');
             const panY = document.getElementById('bgPanY');
             const panLabel = panX.parentElement.previousElementSibling;
@@ -2121,7 +2136,7 @@
         setupReferenceUI();
         initialCardDefaults = Object.fromEntries([
             'mainTitle', 'm_Sub', 'photoHeadlineIntro', 'g_Title', 'g_Desc', 'tagText', 'sourceText',
-            'titleSize', 'm_SubSize', 'photoHeadlineIntroSize', 'g_SubSize', 'm_Overlay', 'referenceFilterStrength'
+            'titleSize', 'm_SubSize', 'photoHeadlineIntroSize', 'photoHeadlineRatio', 'g_SubSize', 'm_Overlay', 'referenceFilterStrength'
         ].map(id => [id, document.getElementById(id).value]));
         setupPersonalUI();
         document.fonts.ready.then(function() { draw(); });
@@ -2242,6 +2257,7 @@
                 titleSize: document.getElementById('titleSize').value,
                 m_SubSize: document.getElementById('m_SubSize').value,
                 photoHeadlineIntroSize: document.getElementById('photoHeadlineIntroSize').value,
+                photoHeadlineRatio: Number(document.getElementById('photoHeadlineRatio').value),
                 g_SubSize: document.getElementById('g_SubSize').value,
                 m_Overlay: document.getElementById('m_Overlay').value,
                 suppressDemoPhoto,
@@ -2282,6 +2298,7 @@
                     document.getElementById('titleSize').value = config.titleSize || 90;
                     document.getElementById('m_SubSize').value = config.m_SubSize || 46;
                     document.getElementById('photoHeadlineIntroSize').value = config.photoHeadlineIntroSize ?? 36;
+                    document.getElementById('photoHeadlineRatio').value = config.photoHeadlineRatio ?? 61;
                     document.getElementById('g_SubSize').value = config.g_SubSize || 40;
                     document.getElementById('m_Overlay').value = config.m_Overlay ?? 0.8;
                     suppressDemoPhoto = config.suppressDemoPhoto === true;
@@ -2624,11 +2641,14 @@
         }
 
         function drawPhotoHeadline() {
-            const photoHeight = 824;
+            const ratio = document.getElementById('photoHeadlineRatio');
+            const photoHeight = Math.round(canvas.height * Number(ratio.value) / 100);
+            ratio.nextElementSibling.textContent = ratio.value + '%';
             const gutter = 96;
             const textWidth = canvas.width - 2 * gutter;
             const tag = document.getElementById('photoHeadlineTag').checked ? document.getElementById('tagText').value.trim() : '';
-            const titleTop = tag ? 987 : 910;
+            const topInset = 77 - Math.max(0, photoHeight - 824) / 2;
+            const titleTop = photoHeight + topInset + (tag ? 86 : 9);
             const titleLimit = hasBottomLogo() ? getLogoPlacement().y - 18 : 1240;
             ctx.save();
             ctx.fillStyle = '#eeeeee';
@@ -2644,7 +2664,7 @@
             }
             if (tag) {
                 ctx.textBaseline = 'alphabetic';
-                drawTag(gutter, 901, tag, textWidth);
+                drawTag(gutter, photoHeight + topInset, tag, textWidth);
             }
 
             const title = document.getElementById('mainTitle').value;
