@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ETtoday 圖卡神器 V18</title>
+    <title>ETtoday 圖卡神器 V19</title>
 
     <link rel="icon" href="data:,">
 
@@ -643,7 +643,7 @@
     <div class="container">
         <div class="editor">
             <header class="workspace-header">
-                <h1 class="workspace-title">ETtoday 神器 V18</h1>
+                <h1 class="workspace-title">ETtoday 神器 V19</h1>
                 <span class="workspace-meta">新聞圖卡 · 1080 × 1350</span>
             </header>
 
@@ -986,6 +986,8 @@
                 };
                 const tagColor = raw.tagColor === undefined ? '#F58220' : raw.tagColor;
                 if (typeof tagColor !== 'string' || !/^#[a-f0-9]{6}$/i.test(tagColor)) throw new Error('色碼格式不正確。');
+                const overlayColor = raw.overlayColor ?? '#102038';
+                if (typeof overlayColor !== 'string' || !/^#[a-f0-9]{6}$/i.test(overlayColor)) throw new Error('色碼格式不正確。');
                 return {
                     layout: oneOf('layout', ['magazine', 'glass', 'news-points', 'photo-headline']),
                     titleSize: number('titleSize', 40, 140, 90),
@@ -993,6 +995,8 @@
                     photoHeadlineIntroSize: number('photoHeadlineIntroSize', 24, 80, 36),
                     glassSize: number('glassSize', 24, 60, 40),
                     overlay: number('overlay', 0, 1, 0.8),
+                    overlayTheme: oneOf('overlayTheme', ['black', 'navyGold', 'mistBlue', 'rose', 'twilight', 'orange', 'silver', 'custom'], 'black'),
+                    overlayColor,
                     filterStrength: number('filterStrength', 0, 100, 0),
                     filter: oneOf('filter', filters, 'none'),
                     ratio: oneOf('ratio', [35, 45, 55], 45),
@@ -1127,6 +1131,16 @@
 
         let bgImg = null;
         let currentTagColor = "#F58220";
+        const magazineOverlayThemes = {
+            black: ['經典黑', '#000000', '#000000'],
+            navyGold: ['墨藍暖金', '#A66F37', '#102038'],
+            mistBlue: ['霧藍', '#597C91', '#192D3E'],
+            rose: ['玫瑰紅', '#A04360', '#47182D'],
+            twilight: ['暮紫', '#694C86', '#291A40'],
+            orange: ['暖橘', '#B36235', '#48291E'],
+            silver: ['銀灰', '#828C99', '#30353E'],
+            custom: ['自訂顏色']
+        };
         const colorableTextIds = ['mainTitle', 'm_Sub', 'photoHeadlineIntro'];
         const textColorMaps = Object.fromEntries(colorableTextIds.map(id => [id, []]));
         const trackedTextValues = Object.fromEntries(colorableTextIds.map(id => [id, document.getElementById(id).value]));
@@ -1247,6 +1261,8 @@
                 titleSize: value('titleSize'), subSize: value('m_SubSize'), glassSize: value('g_SubSize'),
                 photoHeadlineIntroSize: value('photoHeadlineIntroSize'),
                 overlay: value('m_Overlay'), filter: document.getElementById('bgFilter').value,
+                overlayTheme: document.getElementById('magazineOverlayTheme').value,
+                overlayColor: document.getElementById('magazineOverlayColor').value,
                 filterStrength: value('referenceFilterStrength'), tagColor: currentTagColor,
                 ratio: v15State.ratio, theme: v15State.theme, pointSize: v15State.pointSize,
                 logo: !v15State.showLogo ? 'hidden' : v15State.logoMode,
@@ -1264,6 +1280,7 @@
             switchLayout(false);
             [['titleSize', style.titleSize], ['m_SubSize', style.subSize], ['g_SubSize', style.glassSize],
                 ['photoHeadlineIntroSize', style.photoHeadlineIntroSize],
+                ['magazineOverlayTheme', style.overlayTheme], ['magazineOverlayColor', style.overlayColor],
                 ['m_Overlay', style.overlay], ['bgFilter', style.filter], ['referenceFilterStrength', style.filterStrength]]
                 .forEach(([id, value]) => { document.getElementById(id).value = value; });
             currentTagColor = style.tagColor;
@@ -1422,14 +1439,14 @@
                     return;
                 }
                 saveConfig();
-                personalNotice(personal.rememberDraft ? '將在此瀏覽器保留文字草稿。' : '已停止保留 V18 草稿。');
+                personalNotice(personal.rememberDraft ? '將在此瀏覽器保留文字草稿。' : '已停止保留草稿。');
             });
             document.getElementById('personalExport').addEventListener('click', () => {
                 const blob = new Blob([JSON.stringify(personal, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = 'ETtoday-V18-personal.json';
+                link.download = 'ETtoday-V19-personal.json';
                 document.body.append(link);
                 link.click();
                 link.remove();
@@ -1894,7 +1911,7 @@
 
         function setupReferenceUI() {
             const heading = document.querySelector('.workspace-title');
-            heading.innerHTML = '<img src="assets/ettoday-logo-v15.png" alt="ETtoday"><span>神器 V18</span>';
+            heading.innerHTML = '<img src="assets/ettoday-logo-v15.png" alt="ETtoday"><span>神器 V19</span>';
             referenceField('mainTitle', 60);
             referenceField('m_Sub', 100);
             referenceField('photoHeadlineIntro', 100);
@@ -2026,6 +2043,28 @@
             overlayLabel.remove();
             overlaySlider.remove();
 
+            const overlayTheme = document.createElement('select');
+            overlayTheme.id = 'magazineOverlayTheme';
+            Object.entries(magazineOverlayThemes).forEach(([value, [label]]) => {
+                overlayTheme.add(new Option(label, value));
+            });
+            const overlayColor = document.createElement('input');
+            overlayColor.type = 'color';
+            overlayColor.id = 'magazineOverlayColor';
+            overlayColor.value = '#102038';
+            overlayColor.setAttribute('aria-label', '自訂遮罩顏色');
+            overlayColor.style.padding = '2px';
+            const themeRow = photoRow('遮罩配色', 'palette', overlayTheme, overlayColor);
+            themeRow.dataset.layoutGroup = 'magazine';
+            themeRow.classList.add('input-group', 'active');
+            opacityRow.before(themeRow);
+            [overlayTheme, overlayColor].forEach(control => control.addEventListener('input', () => {
+                syncMagazineOverlayColor();
+                draw();
+                saveConfig();
+            }));
+            syncMagazineOverlayColor();
+
             const filter = document.getElementById('bgFilter');
             const filterLabel = document.querySelector('label[for="bgFilter"]');
             const effectRow = photoRow('圖片濾鏡', 'sliders-horizontal', filter, document.createElement('span'));
@@ -2136,7 +2175,8 @@
         setupReferenceUI();
         initialCardDefaults = Object.fromEntries([
             'mainTitle', 'm_Sub', 'photoHeadlineIntro', 'g_Title', 'g_Desc', 'tagText', 'sourceText',
-            'titleSize', 'm_SubSize', 'photoHeadlineIntroSize', 'photoHeadlineRatio', 'g_SubSize', 'm_Overlay', 'referenceFilterStrength'
+            'titleSize', 'm_SubSize', 'photoHeadlineIntroSize', 'photoHeadlineRatio', 'g_SubSize', 'm_Overlay', 'referenceFilterStrength',
+            'magazineOverlayTheme', 'magazineOverlayColor'
         ].map(id => [id, document.getElementById(id).value]));
         setupPersonalUI();
         document.fonts.ready.then(function() { draw(); });
@@ -2236,12 +2276,18 @@
         function updateAllVals() {
             ['bgZoom', 'titleSize', 'm_SubSize', 'photoHeadlineIntroSize', 'm_Overlay', 'g_SubSize'].forEach(id => updateVal(id));
             updateVal('pan');
+            syncMagazineOverlayColor();
+        }
+
+        function syncMagazineOverlayColor() {
+            document.getElementById('magazineOverlayColor').hidden =
+                document.getElementById('magazineOverlayTheme').value !== 'custom';
         }
 
         function saveConfig() {
             if (!personal.rememberDraft) {
                 try { localStorage.removeItem(DRAFT_KEY); }
-                catch (error) { personalNotice('無法清除 V18 草稿，請檢查瀏覽器儲存權限。'); }
+                catch (error) { personalNotice('無法清除草稿，請檢查瀏覽器儲存權限。'); }
                 return;
             }
             const config = {
@@ -2260,6 +2306,8 @@
                 photoHeadlineRatio: Number(document.getElementById('photoHeadlineRatio').value),
                 g_SubSize: document.getElementById('g_SubSize').value,
                 m_Overlay: document.getElementById('m_Overlay').value,
+                overlayTheme: document.getElementById('magazineOverlayTheme').value,
+                overlayColor: document.getElementById('magazineOverlayColor').value,
                 suppressDemoPhoto,
                 bgZoom: document.getElementById('bgZoom').value,
                 bgPanX: document.getElementById('bgPanX').value,
@@ -2301,6 +2349,11 @@
                     document.getElementById('photoHeadlineRatio').value = config.photoHeadlineRatio ?? 61;
                     document.getElementById('g_SubSize').value = config.g_SubSize || 40;
                     document.getElementById('m_Overlay').value = config.m_Overlay ?? 0.8;
+                    document.getElementById('magazineOverlayTheme').value =
+                        Object.hasOwn(magazineOverlayThemes, config.overlayTheme) ? config.overlayTheme : 'black';
+                    if (/^#[a-f0-9]{6}$/i.test(config.overlayColor)) {
+                        document.getElementById('magazineOverlayColor').value = config.overlayColor;
+                    }
                     suppressDemoPhoto = config.suppressDemoPhoto === true;
                     document.getElementById('bgZoom').value = config.bgZoom || 100;
                     document.getElementById('bgPanX').value = config.bgPanX || 50;
@@ -3009,10 +3062,16 @@
 
         function drawMagazine() {
             const strength = document.getElementById('m_Overlay').value;
-            let grd = ctx.createLinearGradient(0, 500, 0, 1350);
-            grd.addColorStop(0, "transparent");
-            grd.addColorStop(0.3, `rgba(0,0,0,${strength * 0.5})`);
-            grd.addColorStop(1, `rgba(0,0,0,${strength})`);
+            const [, middle = document.getElementById('magazineOverlayColor').value, bottom = middle] =
+                magazineOverlayThemes[document.getElementById('magazineOverlayTheme').value];
+            const rgba = (hex, alpha) => {
+                const rgb = Number.parseInt(hex.slice(1), 16);
+                return `rgba(${rgb >> 16},${(rgb >> 8) & 255},${rgb & 255},${alpha})`;
+            };
+            const grd = ctx.createLinearGradient(0, 500, 0, 1350);
+            grd.addColorStop(0, 'transparent');
+            grd.addColorStop(0.3, rgba(middle, strength * 0.5));
+            grd.addColorStop(1, rgba(bottom, strength));
             ctx.fillStyle = grd;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -3118,7 +3177,7 @@
             const h = fontSize + paddingY;
 
             ctx.fillStyle = currentTagColor;
-            roundRect(ctx, x, y, w, h, 8);
+            roundRect(ctx, x, y, w, h, Math.min(w, h) / 2);
             ctx.fill();
 
             ctx.fillStyle = "white";
